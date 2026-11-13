@@ -19,6 +19,7 @@ An interactive, beginner-friendly course for Microsoft Word and Excel, built for
   - Excel formula lab: a working grid with SUM, AVERAGE, MIN, MAX, COUNT, COUNTA, IF, ROUND, COUNTIF, SUMIF, VLOOKUP, TODAY, ranges, references, and error codes
 - **Progress tracking** in `localStorage` via Zustand: completed lessons, quiz best scores, completed projects, and theme preference
 - **Premium glassmorphism UI** with light/dark themes, responsive navigation, print styles, and reduced-motion support
+- **Cinematic motion system** — word-by-word hero reveal with parallax, scroll-triggered section reveals, a learning dashboard with animated progress rings and a streak, direction-aware quiz transitions with an animated score ring, lesson-completion and quiz-pass celebrations, route-level code splitting with skeleton loading. Everything honours `prefers-reduced-motion`, and expensive effects (parallax, tilt, floating cards, custom cursor) are desktop-only
 
 ## Curriculum
 
@@ -69,7 +70,8 @@ npm run lint     # run Oxlint
 
 ```text
 src/
-  components/        Layout, quiz runner, lesson check, visual blocks, path cards
+  components/        Layout, hero, dashboard summary, quiz runner, lesson check, visual blocks, path cards
+    motion/          MotionProvider, CountUp, ProgressRing, TiltCard, Confetti, RouteSkeleton
   data/
     curriculum.ts    Paths, units, lesson lookups, progress helpers
     lessons/         Word and Excel lesson content
@@ -79,9 +81,11 @@ src/
   lib/
     formula.ts       Spreadsheet formula engine for the Excel lab
     utils.ts         Download, date, and duration helpers
+    motion.ts        Motion tokens (durations, easings, variants) and media-query hooks
+    streak.ts        Learning-streak and greeting helpers
   pages/             Home, paths, lessons, quizzes, practice, labs, progress, resources
   store/progress.ts  Persisted progress and theme state
-  index.css          Design tokens, glass utilities, print and motion styles
+  index.css          Design tokens, glass tiers, motion tokens, print and reduced-motion styles
   types.ts           Shared data model
 ```
 

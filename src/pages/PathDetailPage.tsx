@@ -233,7 +233,7 @@ export default function PathDetailPage() {
             <Link
               key={project.id}
               to={`/practice/${project.id}`}
-              className="card group p-5 transition hover:-translate-y-0.5 hover:shadow-lift"
+              className="card group lift p-5"
             >
               <div className="flex items-center justify-between">
                 <span className="chip">{project.difficulty}</span>

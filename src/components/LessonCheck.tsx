@@ -33,7 +33,7 @@ export default function LessonCheck({ questionId }: { questionId: string }) {
               aria-checked={isSelected}
               disabled={submitted}
               onClick={() => setSelected(index)}
-              className={`flex items-start gap-3 rounded-xl border px-3.5 py-2.5 text-left text-sm transition ${
+              className={`flex min-h-11 items-start gap-3 rounded-xl border px-3.5 py-2.5 text-left text-sm transition-colors ${showWrong ? 'anim-shake ' : ''}${
                 showCorrect
                   ? 'border-excel-400 bg-excel-50/80 text-excel-900 dark:border-excel-500/50 dark:bg-excel-500/10 dark:text-excel-100'
                   : showWrong
@@ -53,14 +53,16 @@ export default function LessonCheck({ questionId }: { questionId: string }) {
                 {String.fromCharCode(65 + index)}
               </span>
               <span>{option}</span>
-              {showCorrect && <CheckCircle2 size={16} className="ml-auto shrink-0" />}
-              {showWrong && <XCircle size={16} className="ml-auto shrink-0" />}
+              {showCorrect && <CheckCircle2 size={16} className="anim-pop ml-auto shrink-0" aria-hidden="true" />}
+              {showCorrect && <span className="sr-only">(correct answer)</span>}
+              {showWrong && <XCircle size={16} className="anim-pop ml-auto shrink-0" aria-hidden="true" />}
+              {showWrong && <span className="sr-only">(your answer, incorrect)</span>}
             </button>
           )
         })}
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center gap-3">
+      <div className="mt-3 flex flex-wrap items-center gap-3" aria-live="polite">
         {!submitted ? (
           <button
             type="button"
@@ -72,7 +74,7 @@ export default function LessonCheck({ questionId }: { questionId: string }) {
           </button>
         ) : (
           <>
-            <span className={`text-sm font-semibold ${correct ? 'text-excel-600 dark:text-excel-400' : 'text-red-600 dark:text-red-400'}`}>
+            <span className={`anim-rise text-sm font-semibold ${correct ? 'text-excel-600 dark:text-excel-400' : 'text-red-600 dark:text-red-400'}`}>
               {correct ? 'Correct' : 'Not quite'}
             </span>
             <button
@@ -91,7 +93,7 @@ export default function LessonCheck({ questionId }: { questionId: string }) {
       </div>
 
       {submitted && (
-        <div className="mt-3 rounded-xl border hairline bg-white/50 p-3.5 text-xs leading-relaxed text-muted dark:bg-white/[0.03]">
+        <div className="anim-rise mt-3 rounded-xl border hairline bg-white/50 p-3.5 text-xs leading-relaxed text-muted dark:bg-white/[0.03]">
           <strong className="text-[var(--text-strong)]">Why: </strong>
           {question.explanation}
         </div>

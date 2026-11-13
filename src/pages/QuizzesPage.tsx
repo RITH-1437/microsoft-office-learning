@@ -72,7 +72,7 @@ export default function QuizzesPage() {
                   <Link
                     key={quiz.id}
                     to={`/quizzes/${quiz.id}`}
-                    className={`group card flex flex-col p-5 transition hover:-translate-y-0.5 hover:shadow-lift ${
+                    className={`group card flex flex-col p-5 lift ${
                       isFinal ? 'border-word-300/50 bg-gradient-to-br from-word-50/60 to-white/50 dark:border-word-500/25 dark:from-word-500/10 dark:to-transparent' : ''
                     }`}
                   >

@@ -193,8 +193,15 @@ export default function PracticeDetailPage() {
                     onChange={(event) =>
                       setChecked((previous) => ({ ...previous, [index]: event.target.checked }))
                     }
-                    className="mt-0.5 h-4 w-4 accent-[var(--color-excel-600)]"
+                    className="peer sr-only"
                   />
+                  <span
+                    className="check-box mt-0.5 shrink-0 text-white peer-focus-visible:ring-2 peer-focus-visible:ring-word-500 peer-focus-visible:ring-offset-2"
+                    data-checked={checked[index] ? 'true' : 'false'}
+                    aria-hidden="true"
+                  >
+                    {checked[index] && <Check size={12} strokeWidth={3} className="anim-pop" />}
+                  </span>
                   <span className={checked[index] ? 'text-muted line-through' : 'text-muted'}>{criterion}</span>
                 </label>
               ))}
@@ -275,7 +282,7 @@ export default function PracticeDetailPage() {
           </div>
 
           {exercise.lab && (
-            <Link to={`/labs/${exercise.lab}`} className="card flex items-center gap-3 p-4 transition hover:shadow-lift">
+            <Link to={`/labs/${exercise.lab}`} className="card lift flex items-center gap-3 p-4">
               <span className="grid h-9 w-9 place-items-center rounded-xl bg-word-50 text-word-600 dark:bg-word-500/15 dark:text-word-300">
                 <FlaskConical size={17} />
               </span>
@@ -290,7 +297,7 @@ export default function PracticeDetailPage() {
           <button
             type="button"
             onClick={() => window.print()}
-            className="card flex w-full items-center gap-3 p-4 text-left transition hover:shadow-lift"
+            className="card lift flex w-full items-center gap-3 p-4 text-left"
           >
             <span className="grid h-9 w-9 place-items-center rounded-xl bg-ink-100 text-ink-700 dark:bg-white/10 dark:text-ink-200">
               <Printer size={16} />

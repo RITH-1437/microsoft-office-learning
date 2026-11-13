@@ -4,19 +4,19 @@ export const lessonChecks: Question[] = [
   {
     id: 'w1-1-kc',
     type: 'mcq',
-    prompt: 'You have finished a letter and want to send it to a client so the layout cannot easily change. Which format should you send?',
+    prompt: 'You finished a letter. You want to send it to a client. The page must look the same, and the client must not change it by accident. Which file do you send?',
     options: ['A .docx file', 'A PDF', 'A .txt file', 'A .csv file'],
     answer: 1,
-    explanation: 'A PDF preserves the layout on most devices and is harder for readers to edit by accident. Keep the .docx as your editable working copy.',
+    explanation: 'A PDF keeps the same look on most devices. It is hard to change by accident. Keep the .docx file to make future changes.',
     lessonId: 'w1-1',
   },
   {
     id: 'w1-2-kc',
     type: 'mcq',
-    prompt: 'Which ribbon tab contains the Margins command?',
+    prompt: 'You want to change the page margins. Which tab do you click?',
     options: ['Home', 'Insert', 'Layout', 'Review'],
     answer: 2,
-    explanation: 'Margins are part of page setup, so they live on the Layout tab in the Page Setup group.',
+    explanation: 'Margins are page settings. They are on the Layout tab in the Page Setup group.',
     lessonId: 'w1-2',
   },
   {

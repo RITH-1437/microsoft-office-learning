@@ -71,7 +71,7 @@ export default function PathsPage() {
             <Link
               key={path.id}
               to={`/paths/${path.id}`}
-              className="group glass flex items-center gap-4 rounded-2xl p-5 transition hover:-translate-y-0.5 hover:shadow-lift"
+              className="group glass flex items-center gap-4 rounded-2xl p-5 lift"
             >
               <span
                 className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl text-white ${

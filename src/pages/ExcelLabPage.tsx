@@ -301,7 +301,7 @@ export default function ExcelLabPage() {
             </ol>
           </div>
 
-          <Link to="/lesson/e3-1" className="card flex items-center gap-3 p-4 transition hover:shadow-lift">
+          <Link to="/lesson/e3-1" className="card lift flex items-center gap-3 p-4">
             <ArrowLeft size={15} className="text-muted" />
             <div>
               <div className="text-sm font-semibold">Review formulas</div>

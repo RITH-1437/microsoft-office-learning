@@ -15,6 +15,7 @@ import { exercises } from '../data/exercises'
 import { quizzes } from '../data/questions'
 import { useProgress, quizPercent } from '../store/progress'
 import { ProgressBar } from '../components/PathCard'
+import DashboardSummary from '../components/DashboardSummary'
 import { formatDate } from '../lib/utils'
 
 export default function ProgressPage() {
@@ -65,6 +66,8 @@ export default function ProgressPage() {
         )}
       </header>
 
+      <DashboardSummary />
+
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[
           { icon: CheckCircle2, value: `${doneLessons.length}/${allLessons.length}`, label: 'lessons complete' },
@@ -95,7 +98,7 @@ export default function ProgressPage() {
           </div>
           <span className="font-display text-3xl font-bold">{overall}%</span>
         </div>
-        <ProgressBar value={overall} className="mt-3 h-2.5" />
+        <ProgressBar value={overall} className="mt-3 h-2.5" label="Overall completion" />
       </section>
 
       <section>
@@ -170,7 +173,7 @@ export default function ProgressPage() {
                 <Link
                   key={quiz.id}
                   to={`/quizzes/${quiz.id}`}
-                  className="card flex items-center gap-3 p-3.5 transition hover:shadow-lift"
+                  className="card lift flex items-center gap-3 p-3.5"
                 >
                   <span
                     className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ${
@@ -218,7 +221,7 @@ export default function ProgressPage() {
               <Link
                 key={project.id}
                 to={`/practice/${project.id}`}
-                className="card flex items-center gap-3 p-3.5 transition hover:shadow-lift"
+                className="card lift flex items-center gap-3 p-3.5"
               >
                 <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-excel-50 text-excel-600 dark:bg-excel-500/15 dark:text-excel-300">
                   <CheckCircle2 size={16} />

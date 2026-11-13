@@ -124,7 +124,7 @@ export default function PracticePage() {
               <Link
                 key={exercise.id}
                 to={`/practice/${exercise.id}`}
-                className="group card flex flex-col p-5 transition hover:-translate-y-1 hover:shadow-lift"
+                className="group card flex flex-col p-5 lift"
               >
                 <div className="flex items-center justify-between gap-2">
                   <span
