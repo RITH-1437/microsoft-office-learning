@@ -9,10 +9,8 @@ import {
   FlaskConical,
   Layers,
   MousePointerClick,
-  Table2,
   Target,
-  Trophy,
-} from 'lucide-react'
+  Trophy } from 'lucide-react'
 import { paths, getPathLessons } from '../data/curriculum'
 import { exercises } from '../data/exercises'
 import { quizzes } from '../data/questions'
@@ -20,6 +18,7 @@ import { useProgress } from '../store/progress'
 import PathCard from '../components/PathCard'
 import Hero from '../components/Hero'
 import DashboardSummary from '../components/DashboardSummary'
+import OfficeAppIcon from '../components/icons/OfficeAppIcon'
 
 const features = [
   {
@@ -224,11 +223,11 @@ export default function HomePage() {
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
           <Link to="/lesson/w1-1" className="btn-primary px-5 py-3">
-            <BookOpen size={17} />
+            <OfficeAppIcon app="word" variant="glyph" size={17} />
             Open the first Word lesson
           </Link>
           <Link to="/lesson/e1-1" className="btn-secondary px-5 py-3">
-            <Table2 size={17} />
+            <OfficeAppIcon app="excel" variant="glyph" size={17} />
             Open the first Excel lesson
           </Link>
         </div>

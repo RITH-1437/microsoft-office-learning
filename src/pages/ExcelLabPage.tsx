@@ -7,9 +7,8 @@ import {
   Eraser,
   FlaskConical,
   Info,
-  RotateCcw,
-  Table2,
-} from 'lucide-react'
+  RotateCcw } from 'lucide-react'
+import OfficeAppIcon from '../components/icons/OfficeAppIcon'
 import { cellAddress, displayValue, evaluateWorkbook } from '../lib/formula'
 
 const COLS = 10
@@ -157,9 +156,7 @@ export default function ExcelLabPage() {
         <div className="min-w-0">
           <div className="overflow-hidden rounded-2xl border hairline bg-white shadow-soft dark:bg-ink-900">
             <div className="flex items-center gap-2 border-b hairline bg-ink-50/70 px-3 py-2 dark:bg-white/[0.04]">
-              <span className="grid h-6 w-6 place-items-center rounded bg-excel-600 text-white">
-                <Table2 size={13} />
-              </span>
+              <OfficeAppIcon app="excel" size={24} />
               <span className="text-xs font-semibold">Budget-lab.xlsx</span>
               <span className="ml-auto text-[10px] text-muted">Simulation · not saved</span>
             </div>

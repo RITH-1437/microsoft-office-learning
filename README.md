@@ -1,5 +1,7 @@
 # Office Academy — Microsoft Word & Excel
 
+[![CI](https://github.com/RITH-1437/microsoft-office-learning/actions/workflows/ci.yml/badge.svg)](https://github.com/RITH-1437/microsoft-office-learning/actions/workflows/ci.yml) [![Security](https://github.com/RITH-1437/microsoft-office-learning/actions/workflows/security.yml/badge.svg)](https://github.com/RITH-1437/microsoft-office-learning/actions/workflows/security.yml)
+
 An interactive, beginner-friendly course for Microsoft Word and Excel, built for administrative and office skills. It combines structured lessons, click-level tutorials, knowledge checks, unit assessments, practical projects with starter files, and two in-browser practice labs.
 
 **Live app:** run locally with `npm run dev` (see below). The app uses hash routing and a relative build base, so the `dist` folder can be hosted on GitHub Pages or any static host.
@@ -64,6 +66,8 @@ npm run dev      # start the development server
 npm run build    # type-check and build for production
 npm run preview  # preview the production build
 npm run lint     # run Oxlint
+npm run typecheck # TypeScript project references (tsc -b)
+npm run check:data # curriculum data-integrity check (Node >= 22.18)
 ```
 
 ## Project structure
@@ -88,6 +92,10 @@ src/
   index.css          Design tokens, glass tiers, motion tokens, print and reduced-motion styles
   types.ts           Shared data model
 ```
+
+## Continuous integration
+
+Every push and pull request runs lint, type-check, the data-integrity check, a verified production build and security scans on GitHub Actions. Optional Vercel preview/production deployments activate once secrets are configured. See `docs/ci-cd-architecture.md`, `docs/ci-cd-setup.md` and `docs/ci-cd-troubleshooting.md`.
 
 ## Data validation
 

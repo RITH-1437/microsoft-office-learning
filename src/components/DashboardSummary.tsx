@@ -9,6 +9,7 @@ import { fadeUp, staggerContainer } from '../lib/motion'
 import CountUp from './motion/CountUp'
 import ProgressRing from './motion/ProgressRing'
 import TiltCard from './motion/TiltCard'
+import OfficeAppIcon from './icons/OfficeAppIcon'
 
 type Tone = 'word' | 'excel' | 'admin'
 
@@ -158,9 +159,13 @@ export default function DashboardSummary({ compact = false }: { compact?: boolea
                     </span>
                   </ProgressRing>
                   <div className="min-w-0">
-                    <span className={`grid h-7 w-7 place-items-center rounded-lg ${style.icon}`} aria-hidden="true">
-                      <Icon size={14} />
-                    </span>
+                    {track.tone === 'admin' ? (
+                      <span className={`grid h-7 w-7 place-items-center rounded-lg ${style.icon}`} aria-hidden="true">
+                        <Icon size={14} />
+                      </span>
+                    ) : (
+                      <OfficeAppIcon app={track.tone} size={28} />
+                    )}
                     <div className={`mt-2 text-sm font-bold ${style.label}`}>{track.title}</div>
                     <div className="text-xs text-muted">{track.detail}</div>
                   </div>

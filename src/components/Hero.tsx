@@ -1,9 +1,10 @@
 import { Fragment } from 'react'
 import { Link } from 'react-router-dom'
 import { m, useScroll, useTransform } from 'framer-motion'
-import { FileText, GraduationCap, Sparkles, Table2 } from 'lucide-react'
+import { GraduationCap, Sparkles, Table2 } from 'lucide-react'
 import { duration, ease, fadeUp, stagger, staggerContainer, useRichMotion } from '../lib/motion'
 import CountUp from './motion/CountUp'
+import OfficeAppIcon from './icons/OfficeAppIcon'
 
 const line1 = ['Learn', 'Word', 'and', 'Excel.']
 const line2 = [
@@ -69,9 +70,7 @@ function Composition() {
           <div className="glass-panel float-slow rounded-2xl p-4" style={{ ['--float-delay' as string]: '0s' }}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="grid h-8 w-8 place-items-center rounded-lg bg-word-600 text-white">
-                  <FileText size={15} />
-                </span>
+                <OfficeAppIcon app="word" size={32} />
                 <div>
                   <div className="text-xs font-semibold">Quarterly Report.docx</div>
                   <div className="text-[10px] text-muted">Word · 6 pages</div>
@@ -100,9 +99,7 @@ function Composition() {
           <div className="glass-panel float-slow rounded-2xl p-4" style={{ ['--float-delay' as string]: '-3.5s' }}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="grid h-8 w-8 place-items-center rounded-lg bg-excel-600 text-white">
-                  <Table2 size={15} />
-                </span>
+                <OfficeAppIcon app="excel" size={32} />
                 <div>
                   <div className="text-xs font-semibold">Expense Report.xlsx</div>
                   <div className="text-[10px] text-muted">Excel · formulas ready</div>

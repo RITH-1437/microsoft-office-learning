@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, BookOpen, Clock, Table2 } from 'lucide-react'
+import { ArrowRight, BookOpen, Clock } from 'lucide-react'
 import type { LearningPath } from '../types'
 import { getPathLessons, pathMinutes } from '../data/curriculum'
 import { useProgress } from '../store/progress'
 import { formatMinutes } from '../lib/utils'
 import TiltCard from './motion/TiltCard'
+import OfficeAppIcon from './icons/OfficeAppIcon'
 
 export function ProgressBar({
   value,
@@ -49,7 +50,6 @@ export default function PathCard({ path }: { path: LearningPath }) {
   const done = lessons.filter((lesson) => completed[lesson.id]).length
   const percent = lessons.length ? Math.round((done / lessons.length) * 100) : 0
   const isWord = path.id === 'word'
-  const Icon = isWord ? BookOpen : Table2
   const next = lessons.find((lesson) => !completed[lesson.id]) ?? lessons[0]
 
   return (
@@ -67,13 +67,7 @@ export default function PathCard({ path }: { path: LearningPath }) {
         aria-hidden="true"
       />
       <div className="flex items-start justify-between gap-4">
-        <span
-          className={`grid h-12 w-12 place-items-center rounded-2xl text-white shadow-soft ${
-            isWord ? 'bg-gradient-to-br from-word-600 to-word-400' : 'bg-gradient-to-br from-excel-600 to-excel-400'
-          }`}
-        >
-          <Icon size={24} />
-        </span>
+        <OfficeAppIcon app={path.id} size={48} />
         <span
           className={`rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide ${
             isWord

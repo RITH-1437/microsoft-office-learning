@@ -1,0 +1,77 @@
+# Pull-request hygiene. The heavy checks (lint, types, tests, build, security) run in
+# ci.yml and security.yml on the same pull_request event; this workflow only validates
+# the change set itself and publishes a summary of what reviewers should expect.
+name: Pull request
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+jobs:
+  hygiene:
+    name: Change-set hygiene
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: List changed files
+        id: changes
+        run: |
+          git diff --name-only --diff-filter=ACMR "origin/${{ github.base_ref }}...HEAD" > changed.txt
+          echo "count=$(wc -l < changed.txt)" >> "$GITHUB_OUTPUT"
+          cat changed.txt
+
+      - name: Forbidden paths (build output, env files)
+        run: |
+          status=0
+          if grep -E '^(dist|node_modules)/' changed.txt; then echo "::error::Build output must not be committed"; status=1; fi
+          if grep -E '(^|/)\.env(\..*)?$' changed.txt | grep -Ev '(^|/)\.env\.example$'; then echo "::error::.env files must not be committed"; status=1; fi
+          exit $status
+
+      - name: Lockfile consistency
+        run: |
+          if grep -q '^package.json$' changed.txt && ! grep -q '^package-lock.json$' changed.txt; then
+            if git diff "origin/${{ github.base_ref }}...HEAD" -- package.json | grep -E '^[+-]\s+"[^"]+": "[\^~]?[0-9]' | grep -vqE '"(dev|build|lint|typecheck|check:data|preview|test)"'; then
+              echo "::error::package.json dependencies changed but package-lock.json did not. Run npm install and commit the lockfile."; exit 1
+            fi
+          fi
+          echo "Lockfile consistent."
+
+      - name: Large files (> 1 MB added)
+        run: |
+          big=$(git diff --name-only --diff-filter=A "origin/${{ github.base_ref }}...HEAD" | while read -r f; do
+            [ -f "$f" ] && [ "$(stat -c%s "$f")" -gt 1048576 ] && echo "$f ($(stat -c%s "$f") B)"; done)
+          if [ -n "$big" ]; then echo "::error::Large files added:"; echo "$big"; exit 1; fi
+          echo "No large files."
+
+      - name: Content change notice
+        run: |
+          if grep -qE '^src/data/' changed.txt; then
+            echo "content=true" >> "$GITHUB_ENV"
+          fi
+
+      - name: PR summary
+        if: always()
+        run: |
+          {
+            echo "### 🔎 Pull request #${{ github.event.pull_request.number }}"
+            echo
+            echo "- Changed files: **${{ steps.changes.outputs.count }}**"
+            echo "- Required checks: \`CI / Lint & type-check\`, \`CI / Tests & data integrity\`, \`CI / Production build\`, \`Security / npm audit\`, \`Security / Secrets & artefact hygiene\`"
+            if [ "${content:-false}" = "true" ]; then
+              echo "- 📚 Lesson/quiz/exercise data changed — the data-integrity check in CI validates ids; a content review (education-specialist) is recommended."
+            fi
+            echo
+            echo "<details><summary>Changed files</summary>"
+            echo
+            sed 's/^/- /' changed.txt
+            echo
+            echo "</details>"
+          } >> "$GITHUB_STEP_SUMMARY"

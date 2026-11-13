@@ -11,9 +11,9 @@ Operating manual for Claude in this repo. Detailed workflows live in `.claude/sk
 | State | Zustand + `persist` → `localStorage` (`src/store/progress.ts`) |
 | Backend / DB / Auth | **None.** No API, no accounts, no server. Progress is per-browser only |
 | Package manager | npm (`package-lock.json`) |
-| Scripts | `npm run dev`, `npm run build` (= `tsc -b && vite build`), `npm run lint` (Oxlint), `npm run preview` |
-| Tests | **None configured.** No runner, no CI/CD (`.github/` absent) |
-| Deployment | Static `dist/`; `base: './'` + HashRouter so any static host / GitHub Pages works |
+| Scripts | `npm run dev`, `npm run build` (= `tsc -b && vite build`), `npm run lint` (Oxlint), `npm run typecheck`, `npm run check:data` (curriculum integrity, Node ≥ 22.18), `npm run preview` |
+| Tests | **No unit-test runner.** `check:data` is the only executable check. CI: GitHub Actions in `.github/workflows/` (ci, code-quality, pull-request, security, deploy-preview, deploy-production) — see `docs/ci-cd-*.md` |
+| Deployment | Static `dist/`; `base: './'` + HashRouter so any static host works. `vercel.json` + optional Vercel deploy workflows (inactive until secrets exist) |
 | Research PDFs | Not present in the repo at setup time. If the user supplies them, put them in `docs/research/` and never modify them |
 | Baseline (2026-11-14) | `npm run lint` clean; `npm run build` passes (one chunk >500 kB warning) |
 

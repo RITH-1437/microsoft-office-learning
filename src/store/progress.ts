@@ -30,6 +30,29 @@ export function applyTheme(theme: Theme) {
 
 const now = () => new Date().toISOString()
 
+const asRecord = <T,>(value: unknown): Record<string, T> =>
+  value !== null && typeof value === 'object' && !Array.isArray(value) ? (value as Record<string, T>) : {}
+
+/**
+ * Rehydration guard: localStorage can be edited by hand or left half-written, so only
+ * known keys with the expected shape are restored. Anything else falls back to defaults
+ * instead of crashing the first page that reads it.
+ */
+type PersistedProgress = Pick<ProgressState, 'completedLessons' | 'quizAttempts' | 'completedExercises' | 'lastLessonId' | 'theme'>
+
+function mergePersisted(persisted: unknown, current: ProgressState): ProgressState {
+  const saved = asRecord<unknown>(persisted)
+  const theme = saved.theme
+  return {
+    ...current,
+    completedLessons: asRecord<string>(saved.completedLessons),
+    quizAttempts: asRecord<QuizAttempt>(saved.quizAttempts),
+    completedExercises: asRecord<string>(saved.completedExercises),
+    lastLessonId: typeof saved.lastLessonId === 'string' ? saved.lastLessonId : undefined,
+    theme: theme === 'light' || theme === 'dark' || theme === 'system' ? theme : 'system',
+  }
+}
+
 export const useProgress = create<ProgressState>()(
   persist(
     (set, get) => ({
@@ -103,6 +126,9 @@ export const useProgress = create<ProgressState>()(
     {
       name: 'office-academy-progress',
       version: 1,
+      // Older/unknown versions are accepted as-is; `merge` validates the shape.
+      migrate: (persisted) => persisted as PersistedProgress,
+      merge: mergePersisted,
       partialize: (state) => ({
         completedLessons: state.completedLessons,
         quizAttempts: state.quizAttempts,

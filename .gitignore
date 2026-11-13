@@ -22,3 +22,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment files (never commit secrets; keep a committed .env.example only)
+.env
+.env.*
+!.env.example
+
+# Vercel CLI link metadata (contains org/project ids)
+.vercel

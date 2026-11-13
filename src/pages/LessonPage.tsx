@@ -4,7 +4,6 @@ import { Link, useParams } from 'react-router-dom'
 import {
   ArrowLeft,
   ArrowRight,
-  BookOpen,
   Check,
   CheckCircle2,
   ChevronRight,
@@ -18,8 +17,7 @@ import {
   Play,
   Sparkles,
   Target,
-  Workflow,
-} from 'lucide-react'
+  Workflow } from 'lucide-react'
 import {
   getAdjacentLessons,
   getLesson,
@@ -33,6 +31,7 @@ import { useProgress } from '../store/progress'
 import { ProgressBar } from '../components/PathCard'
 import VisualBlock from '../components/VisualBlock'
 import LessonCheck from '../components/LessonCheck'
+import OfficeAppIcon from '../components/icons/OfficeAppIcon'
 import Confetti from '../components/motion/Confetti'
 import { fadeUp, stagger, staggerContainer } from '../lib/motion'
 import type { PracticeBlock, Tutorial } from '../types'
@@ -210,7 +209,7 @@ export default function LessonPage() {
                     : 'bg-excel-50 text-excel-700 dark:bg-excel-500/15 dark:text-excel-200'
                 }`}
               >
-                {isWord ? <BookOpen size={12} /> : <ListChecks size={12} />}
+                <OfficeAppIcon app={lesson.pathId} variant="glyph" size={12} />
                 Lesson {lessonNumber} of {pathLessons.length}
               </span>
               <span className="chip">{lesson.difficulty}</span>

@@ -1,0 +1,100 @@
+# Production deployment to Vercel. Runs only after the CI workflow has succeeded on main
+# (workflow_run) or when started manually. The `production` environment can require
+# reviewer approval in repository settings (Settings → Environments → production).
+# Skips cleanly when Vercel secrets are not configured. If the Vercel GitHub integration
+# is connected, leave the secrets unset so this workflow does not duplicate Vercel's deploy.
+name: Deploy production (Vercel)
+
+on:
+  workflow_run:
+    workflows: [CI]
+    branches: [main]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  production:
+    name: Vercel production
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: production
+      url: ${{ steps.deploy.outputs.url }}
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    steps:
+      - name: Check deployment credentials
+        id: creds
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          if [ -z "$VERCEL_TOKEN" ] || [ -z "$VERCEL_ORG_ID" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            {
+              echo "### ⏭️ Production deployment skipped"
+              echo
+              echo "Vercel secrets are not configured (see docs/ci-cd-setup.md), or deployment is handled by the Vercel GitHub integration."
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.creds.outputs.configured == 'true'
+        with:
+          # Deploy exactly the commit CI verified.
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - uses: actions/setup-node@v4
+        if: steps.creds.outputs.configured == 'true'
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        if: steps.creds.outputs.configured == 'true'
+        run: npm ci
+
+      - name: Re-verify before deploying
+        if: steps.creds.outputs.configured == 'true'
+        run: |
+          npm run lint
+          npm run typecheck
+          npm run check:data
+
+      - name: Install Vercel CLI
+        if: steps.creds.outputs.configured == 'true'
+        run: npm install --global vercel@latest
+
+      - name: Pull Vercel project settings (production)
+        if: steps.creds.outputs.configured == 'true'
+        run: vercel pull --yes --environment=production --token="${{ secrets.VERCEL_TOKEN }}"
+
+      - name: Build
+        if: steps.creds.outputs.configured == 'true'
+        run: vercel build --prod --token="${{ secrets.VERCEL_TOKEN }}"
+
+      - name: Deploy prebuilt output to production
+        if: steps.creds.outputs.configured == 'true'
+        id: deploy
+        run: |
+          url=$(vercel deploy --prebuilt --prod --token="${{ secrets.VERCEL_TOKEN }}")
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          {
+            echo "### 🚀 Production deployed"
+            echo
+            echo "- URL: $url"
+            echo "- Commit: ${{ github.event.workflow_run.head_sha || github.sha }}"
+            echo "- Rollback: Vercel dashboard → Deployments → previous deployment → *Promote to Production* (see docs/ci-cd-troubleshooting.md)"
+          } >> "$GITHUB_STEP_SUMMARY"

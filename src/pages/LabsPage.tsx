@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
-import { ArrowRight, CheckCircle2, FileText, FlaskConical, Info, Table2 } from 'lucide-react'
+import { ArrowRight, CheckCircle2, FlaskConical, Info } from 'lucide-react'
+import OfficeAppIcon from '../components/icons/OfficeAppIcon'
 
 export default function LabsPage() {
   return (
@@ -23,9 +24,7 @@ export default function LabsPage() {
         >
           <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-word-300/40 blur-3xl" aria-hidden="true" />
           <div className="relative">
-            <span className="grid h-12 w-12 place-items-center rounded-2xl bg-word-600 text-white shadow-soft">
-              <FileText size={23} />
-            </span>
+            <OfficeAppIcon app="word" size={48} />
             <h2 className="mt-5 font-display text-2xl font-bold">Word editing lab</h2>
             <p className="mt-2 text-sm leading-relaxed text-muted">
               Edit a memo, apply headings, bold text, alignment, lists, and colors. Watch the word count
@@ -54,9 +53,7 @@ export default function LabsPage() {
         >
           <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-excel-300/40 blur-3xl" aria-hidden="true" />
           <div className="relative">
-            <span className="grid h-12 w-12 place-items-center rounded-2xl bg-excel-600 text-white shadow-soft">
-              <Table2 size={23} />
-            </span>
+            <OfficeAppIcon app="excel" size={48} />
             <h2 className="mt-5 font-display text-2xl font-bold">Excel formula lab</h2>
             <p className="mt-2 text-sm leading-relaxed text-muted">
               A working 10 × 16 grid with a formula engine. Type values, references, and functions, then see

@@ -1,0 +1,66 @@
+# Reusable code-quality checks (called by ci.yml so lint/type-check live in one place).
+name: Code quality
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lint-and-types:
+    name: Oxlint + TypeScript
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies (deterministic)
+        run: npm ci
+
+      - name: Lint (oxlint)
+        run: npm run lint 2>&1 | tee lint.log
+
+      - name: Type-check (tsc -b, project references)
+        run: npm run typecheck 2>&1 | tee typecheck.log
+
+      - name: Formatting
+        run: |
+          if [ -f .prettierrc ] || [ -f .prettierrc.json ] || [ -f prettier.config.js ] || [ -f prettier.config.mjs ]; then
+            npx prettier --check . 2>&1 | tee format.log
+          else
+            echo "No formatter configured (Prettier/Biome absent) — formatting check skipped and reported." | tee format.log
+          fi
+
+      - name: Quality summary
+        if: always()
+        run: |
+          {
+            echo "### 🧹 Code quality"
+            echo
+            echo "| Check | Result |"
+            echo "| --- | --- |"
+            echo "| Lint (oxlint) | ${{ steps.lint.outcome || 'see log' }} |"
+            echo
+            echo "<details><summary>oxlint output</summary>"
+            echo
+            echo '```'
+            cat lint.log 2>/dev/null || true
+            echo '```'
+            echo "</details>"
+            echo
+            echo "<details><summary>tsc output</summary>"
+            echo
+            echo '```'
+            cat typecheck.log 2>/dev/null || true
+            echo '```'
+            echo "</details>"
+            echo
+            echo "Formatting: $(cat format.log 2>/dev/null | tail -1)"
+          } >> "$GITHUB_STEP_SUMMARY"

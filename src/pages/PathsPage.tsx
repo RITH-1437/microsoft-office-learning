@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
-import { ArrowRight, BookOpen, CheckCircle2, Clock, Layers, Table2 } from 'lucide-react'
+import { ArrowRight, CheckCircle2, Clock, Layers } from 'lucide-react'
+import OfficeAppIcon from '../components/icons/OfficeAppIcon'
 import { paths, getPathLessons, pathMinutes } from '../data/curriculum'
 import { useProgress } from '../store/progress'
 import PathCard, { ProgressBar } from '../components/PathCard'
@@ -78,7 +79,7 @@ export default function PathsPage() {
                   isWord ? 'bg-word-600' : 'bg-excel-600'
                 }`}
               >
-                {isWord ? <BookOpen size={20} /> : <Table2 size={20} />}
+                <OfficeAppIcon app={path.id} variant="glyph" size={22} />
               </span>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-3">

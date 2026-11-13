@@ -9,6 +9,8 @@ const EXCLUDE_SELECTOR = 'aside, .sticky, .no-reveal, [data-no-reveal], [role="d
  * intersection threshold would otherwise stay invisible for ever.
  */
 const MAX_HEIGHT_RATIO = 0.7
+/** Elements that start inside the first screen are not hidden (the <main> entrance covers them; hiding them delays LCP). */
+const FOLD_RATIO = 0.9
 /** Reveal transition (0.6 s) + max stagger (0.385 s) + slack. */
 const SETTLE_MS = 1400
 
@@ -32,11 +34,14 @@ export default function MotionEffects({ refreshKey = 0 }: { refreshKey?: number 
     if (!main) return
 
     const maxHeight = window.innerHeight * MAX_HEIGHT_RATIO
+    // Document-relative fold line (the layout scrolls to top on every route change).
+    const fold = window.innerHeight * FOLD_RATIO
     const nodes = Array.from(main.querySelectorAll<HTMLElement>(REVEAL_SELECTOR)).filter((element) => {
       if (element.closest(EXCLUDE_SELECTOR)) return false
       if (element.matches('.glass') && element.parentElement?.closest('.card')) return false
       if (element.matches('.card') && element.parentElement?.closest('.card, article')) return false
       if (element.offsetHeight > maxHeight) return false
+      if (element.getBoundingClientRect().top + window.scrollY < fold) return false
       return true
     })
 

@@ -1,4 +1,4 @@
-import { useRef, type ReactNode } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import { useFinePointer, usePrefersReducedMotion } from '../../lib/motion'
 
 /**
@@ -20,6 +20,8 @@ export default function TiltCard({
   const fine = useFinePointer()
   const reduced = usePrefersReducedMotion()
   const enabled = fine && !reduced
+
+  useEffect(() => () => cancelAnimationFrame(frame.current), [])
 
   const onMove = (event: React.PointerEvent<HTMLDivElement>) => {
     if (!enabled || event.pointerType !== 'mouse') return

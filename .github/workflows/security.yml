@@ -1,0 +1,99 @@
+# Security & dependency scanning. Runs on pushes to main, pull requests, weekly and on demand.
+# Secrets are never needed here; every job has read-only repository access except CodeQL,
+# which needs security-events: write to upload results (opt-in via repository variable).
+name: Security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '17 6 * * 1' # Mondays 06:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  npm-audit:
+    name: npm audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install (no lifecycle scripts)
+        run: npm ci --ignore-scripts
+
+      - name: Audit production dependencies (fails on high/critical)
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Audit all dependencies (informational)
+        if: always()
+        run: |
+          npm audit --json > audit.json || true
+          node -e '
+            const a = JSON.parse(require("fs").readFileSync("audit.json", "utf8"));
+            const v = a.metadata?.vulnerabilities ?? {};
+            const rows = ["critical", "high", "moderate", "low", "info"].map((k) => `| ${k} | ${v[k] ?? 0} |`).join("\n");
+            require("fs").appendFileSync(process.env.GITHUB_STEP_SUMMARY, `### 🔐 npm audit (all dependencies)\n\n| Severity | Count |\n| --- | --- |\n${rows}\n\nProduction dependencies must have no high/critical findings (enforced above).\n`);
+          '
+
+  secrets-hygiene:
+    name: Secrets & artefact hygiene
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Tracked files must not include env files, build output or key material
+        run: |
+          set -euo pipefail
+          status=0
+          if git ls-files | grep -Ev '^\.env\.example$' | grep -E '(^|/)\.env(\..*)?$'; then
+            echo "::error::.env file is tracked in git"; status=1
+          fi
+          if git ls-files | grep -E '^(dist|node_modules)/'; then
+            echo "::error::Build output or node_modules is tracked in git"; status=1
+          fi
+          # Basic credential patterns; GitHub secret scanning + push protection should also be enabled (docs/ci-cd-setup.md).
+          if git grep -nE 'AKIA[0-9A-Z]{16}|-----BEGIN (RSA|EC|OPENSSH|PGP) PRIVATE KEY-----|ghp_[A-Za-z0-9]{36}|sk-[A-Za-z0-9]{32,}|xox[baprs]-[A-Za-z0-9-]{10,}' -- . ':!package-lock.json' ':!.github/workflows/security.yml'; then
+            echo "::error::Possible credential committed"; status=1
+          fi
+          exit $status
+
+  dependency-review:
+    name: Dependency review (PR)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+          comment-summary-in-pr: never
+
+  codeql:
+    # Opt-in: set repository variable ENABLE_CODEQL=true (requires GitHub code scanning
+    # to be available for the repository — free for public repos).
+    name: CodeQL
+    if: vars.ENABLE_CODEQL == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      actions: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+      - uses: github/codeql-action/analyze@v3

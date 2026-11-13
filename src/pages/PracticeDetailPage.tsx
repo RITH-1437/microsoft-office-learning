@@ -7,15 +7,14 @@ import {
   CheckCircle2,
   Clock,
   Download,
-  FileSpreadsheet,
   FileText,
   FlaskConical,
   Lightbulb,
   ListChecks,
   Printer,
   Target,
-  Trophy,
-} from 'lucide-react'
+  Trophy } from 'lucide-react'
+import OfficeAppIcon from '../components/icons/OfficeAppIcon'
 import { exerciseById, exercises } from '../data/exercises'
 import { useProgress } from '../store/progress'
 import { downloadStarter } from '../lib/utils'
@@ -69,7 +68,7 @@ export default function PracticeDetailPage() {
                     : 'bg-excel-50 text-excel-700 dark:bg-excel-500/15 dark:text-excel-200'
                 }`}
               >
-                {isWord ? <FileText size={12} /> : <FileSpreadsheet size={12} />}
+                <OfficeAppIcon app={exercise.pathId} variant="glyph" size={12} />
                 {exercise.pathId === 'word' ? 'Word project' : 'Excel project'}
               </span>
               <span className="chip">{exercise.difficulty}</span>

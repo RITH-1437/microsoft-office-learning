@@ -39,10 +39,29 @@ export type Visual =
       unit?: string
     }
 
+/** Which part of the real Office interface a tutorial step points at (rendered by OfficeStepGuide). */
+export interface UiReference {
+  /** Defaults to the lesson's app. */
+  app?: 'word' | 'excel'
+  /** Ribbon tab id from src/data/officeUi.ts (e.g. 'home', 'insert'). */
+  tab?: string
+  /** Ribbon button id from src/data/officeUi.ts (e.g. 'bold'); must belong to `tab` when both are given. */
+  target?: string
+  /** What the document / sheet area should show for this step. */
+  workspace?: WorkspaceState
+  /** Short caption under the preview, e.g. "The selected text turns bold." */
+  caption?: string
+}
+
+export type WorkspaceState =
+  | { kind: 'doc'; lines: string[]; selection?: string }
+  | { kind: 'sheet'; cells: string[][]; selected?: string; formula?: string }
+
 export interface TutorialStep {
   instruction: string
   detail?: string
   shortcut?: string
+  ui?: UiReference
 }
 
 export interface Tutorial {
@@ -89,6 +108,8 @@ export interface Lesson {
   guided: PracticeBlock
   independent: PracticeBlock
   knowledgeCheck: string
+  /** Extra quick-quiz question ids shown after the knowledge check (2–3 questions per lesson). */
+  quickQuiz?: string[]
   summary: string[]
   nextTeaser?: string
 }

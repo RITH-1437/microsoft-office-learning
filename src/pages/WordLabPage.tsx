@@ -21,6 +21,7 @@ import {
   Underline,
   Undo2,
 } from 'lucide-react'
+import OfficeAppIcon from '../components/icons/OfficeAppIcon'
 
 const initialHtml = `<h1>Business Memo</h1>
 <p><strong>To:</strong> All staff<br/><strong>From:</strong> Operations Manager<br/><strong>Date:</strong> 12 March 2026<br/><strong>Subject:</strong> New supply request process</p>
@@ -139,9 +140,7 @@ export default function WordLabPage() {
         <div className="min-w-0">
           <div className="overflow-hidden rounded-2xl border hairline bg-white shadow-soft dark:bg-ink-900">
             <div className="flex items-center gap-2 border-b hairline bg-ink-50/70 px-3 py-2 dark:bg-white/[0.04]">
-              <span className="grid h-6 w-6 place-items-center rounded bg-word-600 text-white">
-                <FileText size={13} />
-              </span>
+              <OfficeAppIcon app="word" size={24} />
               <span className="text-xs font-semibold">Business-Memo.docx</span>
               <span className="ml-auto text-[10px] text-muted">Simulation · not saved</span>
             </div>

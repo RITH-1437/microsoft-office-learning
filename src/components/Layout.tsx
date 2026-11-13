@@ -245,7 +245,7 @@ export default function Layout() {
         id="main-content"
         key={pathname}
         tabIndex={-1}
-        className="page-enter mx-auto max-w-7xl px-4 pb-20 pt-8 outline-none sm:px-6 sm:pt-10"
+        className="page-enter mx-auto min-h-[calc(100vh-4rem)] max-w-7xl px-4 pb-20 pt-8 outline-none sm:px-6 sm:pt-10"
       >
         <Suspense fallback={<RouteSkeleton />}>
           <Outlet />

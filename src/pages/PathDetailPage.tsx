@@ -2,7 +2,6 @@ import { Link, useParams } from 'react-router-dom'
 import {
   ArrowLeft,
   ArrowRight,
-  BookOpen,
   CheckCircle2,
   ChevronRight,
   Circle,
@@ -10,9 +9,8 @@ import {
   Clock,
   FlaskConical,
   Play,
-  Table2,
-  Target,
-} from 'lucide-react'
+  Target } from 'lucide-react'
+import OfficeAppIcon from '../components/icons/OfficeAppIcon'
 import { getPath, getPathLessons, getUnitLessons, pathMinutes } from '../data/curriculum'
 import { exercisesForPath } from '../data/exercises'
 import { getQuiz } from '../data/questions'
@@ -71,7 +69,7 @@ export default function PathDetailPage() {
                   : 'bg-excel-50 text-excel-700 dark:bg-excel-500/15 dark:text-excel-200'
               }`}
             >
-              {isWord ? <BookOpen size={13} /> : <Table2 size={13} />}
+              <OfficeAppIcon app={path.id} variant="glyph" size={13} />
               {lessons.length} lessons · {path.units.length} units
             </span>
             <h1 className="mt-4 font-display text-4xl font-extrabold tracking-tight">{path.title}</h1>

@@ -6,7 +6,7 @@ import LogoMark from '../LogoMark'
  */
 export default function RouteSkeleton() {
   return (
-    <div role="status" aria-live="polite" className="space-y-8" data-no-reveal>
+    <div role="status" aria-live="polite" className="min-h-[70vh] space-y-8" data-no-reveal>
       <span className="sr-only">Loading page…</span>
       <div className="flex items-center gap-3" aria-hidden="true">
         <LogoMark className="logo-pulse h-9 w-9" />

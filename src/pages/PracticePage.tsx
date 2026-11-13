@@ -5,12 +5,10 @@ import {
   CheckCircle2,
   Clock,
   Download,
-  FileSpreadsheet,
-  FileText,
   FlaskConical,
   ListChecks,
-  Search,
-} from 'lucide-react'
+  Search } from 'lucide-react'
+import OfficeAppIcon from '../components/icons/OfficeAppIcon'
 import { exercises } from '../data/exercises'
 import { useProgress } from '../store/progress'
 
@@ -134,7 +132,7 @@ export default function PracticePage() {
                         : 'bg-excel-50 text-excel-700 dark:bg-excel-500/15 dark:text-excel-200'
                     }`}
                   >
-                    {isWord ? <FileText size={11} /> : <FileSpreadsheet size={11} />}
+                    <OfficeAppIcon app={exercise.pathId} variant="glyph" size={11} />
                     {exercise.pathId}
                   </span>
                   {done ? (

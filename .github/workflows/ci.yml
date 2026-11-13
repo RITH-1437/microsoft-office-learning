@@ -1,0 +1,121 @@
+# Main continuous integration: lint + type-check (reusable workflow), tests & data
+# integrity, then a verified production build published as an artifact.
+# Security checks run in security.yml on the same events; deployments are separate.
+name: CI
+
+on:
+  push:
+    branches: [main, 'feat/**', 'fix/**', 'content/**', 'chore/**']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: 22
+
+jobs:
+  quality:
+    name: Lint & type-check
+    uses: ./.github/workflows/code-quality.yml
+
+  tests:
+    name: Tests & data integrity
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies (deterministic)
+        run: npm ci
+
+      - name: Unit tests (reported, never skipped silently)
+        run: |
+          if node -e "process.exit(require('./package.json').scripts?.test ? 0 : 1)"; then
+            npm test
+            echo "### ✅ Unit tests passed" >> "$GITHUB_STEP_SUMMARY"
+          else
+            {
+              echo "### ⚠️ No unit test suite configured"
+              echo
+              echo "The project has no \`test\` script, so no unit tests ran. Recommended next step: add Vitest + Testing Library"
+              echo "and cover \`src/lib/formula.ts\`, quiz scoring (\`QuizRunner\`), and \`src/store/progress.ts\` (see docs/ci-cd-audit.md)."
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Curriculum data integrity
+        run: npm run check:data 2>&1 | tee data-check.log
+
+      - name: Data integrity summary
+        if: always()
+        run: |
+          {
+            echo "### 📚 Curriculum data integrity"
+            echo
+            echo '```'
+            cat data-check.log
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  build:
+    name: Production build
+    needs: [quality, tests]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies (deterministic)
+        run: npm ci
+
+      - name: Build
+        run: npm run build 2>&1 | tee build.log
+
+      - name: Verify build output
+        run: |
+          test -f dist/index.html || { echo "::error::dist/index.html missing"; exit 1; }
+          js_count=$(find dist/assets -name '*.js' | wc -l)
+          css_count=$(find dist/assets -name '*.css' | wc -l)
+          [ "$js_count" -gt 0 ] && [ "$css_count" -gt 0 ] || { echo "::error::No JS/CSS assets in dist/assets"; exit 1; }
+          grep -q '<script type="module"' dist/index.html || { echo "::error::index.html does not reference the module bundle"; exit 1; }
+          # A static host must not need absolute paths (base: './' + HashRouter).
+          if grep -Eq 'src="/assets/|href="/assets/' dist/index.html; then
+            echo "::error::index.html uses absolute asset paths; vite.config.ts base must stay './'"; exit 1
+          fi
+          {
+            echo "### 📦 Production build"
+            echo
+            echo "| File | Size |"
+            echo "| --- | --- |"
+            find dist -type f \( -name '*.js' -o -name '*.css' -o -name '*.html' \) -printf '| %P | %s B |\n' | sort
+            echo
+            echo "Total: $(du -sh dist | cut -f1) · JS chunks: $js_count · CSS: $css_count"
+            if grep -q 'larger than 500 kB' build.log; then
+              echo
+              echo "> ⚠️ Vite chunk-size warning present (entry chunk carries all lesson data). Tracked as a performance follow-up."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ github.sha }}
+          path: dist
+          retention-days: 7
+          if-no-files-found: error
