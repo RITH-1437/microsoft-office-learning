@@ -6,6 +6,8 @@ import { duration, ease, fadeUp, slideStep, stagger, staggerContainer } from '..
 import Confetti from './motion/Confetti'
 import CountUp from './motion/CountUp'
 import ProgressRing from './motion/ProgressRing'
+import RichText from './RichText'
+import { useT } from '../i18n'
 
 export default function QuizRunner({
   quiz,
@@ -18,6 +20,7 @@ export default function QuizRunner({
   const [current, setCurrent] = useState(0)
   const [direction, setDirection] = useState(1)
   const [submitted, setSubmitted] = useState(false)
+  const t = useT()
 
   const total = quiz.questions.length
   const score = quiz.questions.reduce(
@@ -69,13 +72,13 @@ export default function QuizRunner({
                 tone={passed ? 'excel' : 'word'}
                 size={132}
                 stroke={10}
-                label={`Score ${percent} percent`}
+                label={t('runner.scoreLabel', { n: percent })}
               >
                 <div>
                   <div className="font-display text-3xl font-extrabold">
                     <CountUp value={percent} suffix="%" />
                   </div>
-                  <div className="text-[10px] font-semibold uppercase tracking-wide text-muted">score</div>
+                  <div className="text-[10px] font-semibold uppercase tracking-wide text-muted">{t('runner.score')}</div>
                 </div>
               </ProgressRing>
             </div>
@@ -88,10 +91,10 @@ export default function QuizRunner({
               >
                 <Trophy size={18} />
               </span>
-              <h2 className="font-display text-2xl font-bold">{passed ? 'Assessment passed' : 'Keep practicing'}</h2>
+              <h2 className="font-display text-2xl font-bold">{passed ? t('runner.passed') : t('runner.keepPracticing')}</h2>
             </div>
             <p className="mt-1 text-sm text-muted">
-              You need {quiz.passScore}% to pass. You scored {percent}% ({score} of {total} correct).
+              {t('runner.summary', { need: quiz.passScore, p: percent, score, total })}
             </p>
           </div>
           <div className="mx-auto mt-5 grid max-w-md grid-cols-3 gap-3">
@@ -99,27 +102,27 @@ export default function QuizRunner({
               <div className="font-display text-2xl font-bold">
                 <CountUp value={score} />
               </div>
-              <div className="text-[10px] uppercase tracking-wide text-muted">correct</div>
+              <div className="text-[10px] uppercase tracking-wide text-muted">{t('runner.correct')}</div>
             </div>
             <div className="rounded-xl border hairline bg-white/60 p-3 dark:bg-white/5">
               <div className="font-display text-2xl font-bold">
                 <CountUp value={total - score} />
               </div>
-              <div className="text-[10px] uppercase tracking-wide text-muted">missed</div>
+              <div className="text-[10px] uppercase tracking-wide text-muted">{t('runner.missed')}</div>
             </div>
             <div className="rounded-xl border hairline bg-white/60 p-3 dark:bg-white/5">
               <div className="font-display text-2xl font-bold">{total}</div>
-              <div className="text-[10px] uppercase tracking-wide text-muted">questions</div>
+              <div className="text-[10px] uppercase tracking-wide text-muted">{t('runner.questions')}</div>
             </div>
           </div>
           <button type="button" onClick={retake} className="btn-primary mt-5">
             <RotateCcw size={15} />
-            Retake assessment
+            {t('quizzes.retake')}
           </button>
         </m.div>
 
         <div className="mt-8">
-          <h3 className="font-display text-lg font-bold">Review every answer</h3>
+          <h3 className="font-display text-lg font-bold">{t('runner.reviewAll')}</h3>
           <m.div
             className="mt-4 space-y-3"
             variants={staggerContainer(0.15, stagger.tight)}
@@ -146,22 +149,27 @@ export default function QuizRunner({
                               : 'bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-200'
                           }`}
                         >
-                          {isCorrect ? 'Correct' : userAnswer === undefined ? 'Not answered' : 'Incorrect'}
+                          {isCorrect
+                            ? t('runner.isCorrect')
+                            : userAnswer === undefined
+                              ? t('runner.notAnswered')
+                              : t('runner.incorrect')}
                         </span>
-                        {index + 1}. {question.prompt}
+                        {index + 1}. <RichText text={question.prompt} />
                       </p>
                       <div className="mt-2 space-y-1 text-xs">
                         <p className={isCorrect ? 'text-excel-700 dark:text-excel-300' : 'text-red-700 dark:text-red-300'}>
-                          Your answer: {userAnswer === undefined ? 'Not answered' : question.options[userAnswer]}
+                          {t('runner.yourAnswer')}
+                          {userAnswer === undefined ? t('runner.notAnswered') : <RichText text={question.options[userAnswer]} />}
                         </p>
                         {!isCorrect && (
                           <p className="text-excel-700 dark:text-excel-300">
-                            Correct answer: {question.options[question.answer]}
+                            {t('runner.correctAnswer')}<RichText text={question.options[question.answer]} />
                           </p>
                         )}
                       </div>
                       <p className="mt-2 rounded-lg bg-ink-50/70 p-2.5 text-xs leading-relaxed text-muted dark:bg-white/[0.03]">
-                        {question.explanation}
+                        <RichText text={question.explanation} />
                       </p>
                     </div>
                   </div>
@@ -181,16 +189,16 @@ export default function QuizRunner({
     <div>
       <div className="mb-4 flex items-center justify-between gap-4">
         <div className="text-xs font-semibold uppercase tracking-wide text-muted">
-          Question {current + 1} of {total}
+          {t('runner.questionOf', { n: current + 1, total })}
         </div>
         <div className="text-xs text-muted">
-          {answeredCount} answered · {quiz.passScore}% to pass
+          {t('runner.answered', { n: answeredCount, p: quiz.passScore })}
         </div>
       </div>
       <div
         className="h-1.5 w-full overflow-hidden rounded-full bg-ink-200/80 dark:bg-white/10"
         role="progressbar"
-        aria-label="Quiz progress"
+        aria-label={t('runner.progress')}
         aria-valuemin={1}
         aria-valuemax={total}
         aria-valuenow={current + 1}
@@ -211,8 +219,8 @@ export default function QuizRunner({
             animate="center"
             exit="exit"
           >
-            <p className="font-display text-lg font-bold leading-snug sm:text-xl">{question.prompt}</p>
-            <div className="mt-4 grid gap-2.5" role="radiogroup" aria-label="Answer options">
+            <p className="font-display text-lg font-bold leading-snug sm:text-xl"><RichText text={question.prompt} /></p>
+            <div className="mt-4 grid gap-2.5" role="radiogroup" aria-label={t('runner.options')}>
               {question.options.map((option, index) => {
                 const isSelected = selected === index
                 return (
@@ -240,8 +248,8 @@ export default function QuizRunner({
                         String.fromCharCode(65 + index)
                       )}
                     </span>
-                    <span>{option}</span>
-                    {isSelected && <span className="sr-only">(selected)</span>}
+                    <span><RichText text={option} /></span>
+                    {isSelected && <span className="sr-only">{t('runner.selected')}</span>}
                   </m.button>
                 )
               })}
@@ -258,7 +266,7 @@ export default function QuizRunner({
           className="btn-secondary disabled:cursor-not-allowed disabled:opacity-40"
         >
           <ArrowLeft size={15} />
-          Previous
+          {t('common.previous')}
         </button>
 
         <div className="flex items-center gap-1">
@@ -267,7 +275,7 @@ export default function QuizRunner({
               key={item.id}
               type="button"
               onClick={() => goTo(index)}
-              aria-label={`Go to question ${index + 1}${answers[index] !== undefined ? ' (answered)' : ''}`}
+              aria-label={t(answers[index] !== undefined ? 'runner.goToAnswered' : 'runner.goTo', { n: index + 1 })}
               aria-current={index === current ? 'step' : undefined}
               className="grid h-6 w-4 place-items-center sm:w-5"
             >
@@ -286,7 +294,7 @@ export default function QuizRunner({
 
         {current < total - 1 ? (
           <button type="button" onClick={() => goTo(current + 1)} className="btn-primary">
-            Next
+            {t('common.next')}
             <ArrowRight size={15} />
           </button>
         ) : (
@@ -296,14 +304,14 @@ export default function QuizRunner({
             disabled={answeredCount < total}
             className="btn-primary disabled:cursor-not-allowed disabled:opacity-40"
           >
-            Submit assessment
+            {t('runner.submit')}
             <CheckCircle2 size={15} />
           </button>
         )}
       </div>
 
       {answeredCount < total && current === total - 1 && (
-        <p className="mt-3 text-right text-xs text-muted">Answer all questions to submit.</p>
+        <p className="mt-3 text-right text-xs text-muted">{t('runner.answerAll')}</p>
       )}
     </div>
   )

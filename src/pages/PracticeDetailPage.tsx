@@ -18,24 +18,30 @@ import OfficeAppIcon from '../components/icons/OfficeAppIcon'
 import { exerciseById, exercises } from '../data/exercises'
 import { useProgress } from '../store/progress'
 import { downloadStarter } from '../lib/utils'
+import ContentLanguageNote from '../components/ContentLanguageNote'
+import { useT } from '../i18n'
+import { useLocalize } from '../i18n/content'
 
 export default function PracticeDetailPage() {
   const { exerciseId } = useParams()
-  const exercise = exerciseId ? exerciseById.get(exerciseId) : undefined
+  const L = useLocalize()
+  const sourceExercise = exerciseId ? exerciseById.get(exerciseId) : undefined
+  const exercise = sourceExercise ? L.exercise(sourceExercise) : undefined
   const completed = useProgress((state) => state.completedExercises)
   const completeExercise = useProgress((state) => state.completeExercise)
   const uncompleteExercise = useProgress((state) => state.uncompleteExercise)
   const [checked, setChecked] = useState<Record<number, boolean>>({})
   const [hintIndex, setHintIndex] = useState(0)
+  const t = useT()
 
   if (!exercise) {
     return (
       <div className="mx-auto max-w-xl py-20 text-center">
-        <h1 className="font-display text-3xl font-bold">Project not found</h1>
-        <p className="mt-2 text-muted">That project does not exist.</p>
+        <h1 className="font-display text-3xl font-bold">{t('practiceDetail.notFound')}</h1>
+        <p className="mt-2 text-muted">{t('practiceDetail.notFoundBody')}</p>
         <Link to="/practice" className="btn-primary mt-6">
           <ArrowLeft size={16} />
-          Back to projects
+          {t('practiceDetail.back')}
         </Link>
       </div>
     )
@@ -45,13 +51,16 @@ export default function PracticeDetailPage() {
   const done = Boolean(completed[exercise.id])
   const checkedCount = exercise.criteria.filter((_, index) => checked[index]).length
   const allChecked = checkedCount === exercise.criteria.length
-  const related = exercises.filter((item) => item.id !== exercise.id && item.pathId === exercise.pathId).slice(0, 3)
+  const related = exercises
+    .filter((item) => item.id !== exercise.id && item.pathId === exercise.pathId)
+    .slice(0, 3)
+    .map(L.exercise)
 
   return (
     <div className="space-y-8">
-      <nav className="flex flex-wrap items-center gap-1.5 text-xs text-muted" aria-label="Breadcrumb">
+      <nav className="flex flex-wrap items-center gap-1.5 text-xs text-muted" aria-label={t('lesson.breadcrumb')}>
         <Link to="/practice" className="hover:text-[var(--text-strong)]">
-          Projects
+          {t('footer.projects')}
         </Link>
         <span>/</span>
         <span className="text-[var(--text-strong)]">{exercise.title}</span>
@@ -69,26 +78,27 @@ export default function PracticeDetailPage() {
                 }`}
               >
                 <OfficeAppIcon app={exercise.pathId} variant="glyph" size={12} />
-                {exercise.pathId === 'word' ? 'Word project' : 'Excel project'}
+                {exercise.pathId === 'word' ? t('practiceDetail.wordProject') : t('practiceDetail.excelProject')}
               </span>
-              <span className="chip">{exercise.difficulty}</span>
+              <span className="chip">{t(`difficulty.${exercise.difficulty}`)}</span>
               <span className="chip">
-                <Clock size={11} /> {exercise.duration} min
+                <Clock size={11} /> {t('common.min', { n: exercise.duration })}
               </span>
               {done && (
                 <span className="inline-flex items-center gap-1 rounded-full bg-excel-50 px-2.5 py-1 text-[11px] font-semibold text-excel-700 dark:bg-excel-500/15 dark:text-excel-200">
-                  <CheckCircle2 size={12} /> Completed
+                  <CheckCircle2 size={12} /> {t('common.completed')}
                 </span>
               )}
             </div>
             <h1 className="mt-3 font-display text-3xl font-extrabold tracking-tight sm:text-4xl">{exercise.title}</h1>
             <p className="mt-2 text-lg text-muted">{exercise.subtitle}</p>
             <p className="mt-3 max-w-3xl text-sm leading-relaxed text-muted">{exercise.overview}</p>
+            <ContentLanguageNote className="mt-4" />
           </header>
 
           <section className="rounded-2xl border hairline bg-white/50 p-5 dark:bg-white/[0.03]">
             <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted">
-              <Target size={13} /> Project objectives
+              <Target size={13} /> {t('practiceDetail.objectives')}
             </div>
             <ul className="mt-3 grid gap-2 sm:grid-cols-2">
               {exercise.objectives.map((objective) => (
@@ -101,7 +111,7 @@ export default function PracticeDetailPage() {
           </section>
 
           <section>
-            <h2 className="font-display text-2xl font-bold">Before you start</h2>
+            <h2 className="font-display text-2xl font-bold">{t('practiceDetail.before')}</h2>
             <ol className="mt-3 space-y-2">
               {exercise.setup.map((step, index) => (
                 <li key={step} className="flex gap-2.5 text-sm">
@@ -115,13 +125,13 @@ export default function PracticeDetailPage() {
             {exercise.starter && (
               <button type="button" onClick={() => downloadStarter(exercise.starter!)} className="btn-secondary mt-4">
                 <Download size={15} />
-                Download {exercise.starter.filename}
+                {t('practiceDetail.download', { file: exercise.starter.filename })}
               </button>
             )}
           </section>
 
           <section>
-            <h2 className="font-display text-2xl font-bold">Project steps</h2>
+            <h2 className="font-display text-2xl font-bold">{t('practiceDetail.steps')}</h2>
             <ol className="mt-4 space-y-3">
               {exercise.steps.map((step, index) => (
                 <li key={step} className="card flex gap-3 p-4">
@@ -141,7 +151,7 @@ export default function PracticeDetailPage() {
           </section>
 
           <section>
-            <h2 className="font-display text-2xl font-bold">Hints</h2>
+            <h2 className="font-display text-2xl font-bold">{t('practiceDetail.hints')}</h2>
             <div className="mt-3 rounded-2xl border border-amber-300/50 bg-amber-50/50 p-5 dark:border-amber-500/25 dark:bg-amber-500/5">
               <div className="flex items-start gap-2.5">
                 <Lightbulb size={17} className="mt-0.5 shrink-0 text-amber-500" />
@@ -149,7 +159,7 @@ export default function PracticeDetailPage() {
                   <p className="text-sm text-muted">{exercise.hints[hintIndex]}</p>
                   <div className="mt-3 flex items-center gap-3">
                     <span className="text-[11px] text-muted">
-                      Hint {hintIndex + 1} of {exercise.hints.length}
+                      {t('practiceDetail.hintOf', { n: hintIndex + 1, total: exercise.hints.length })}
                     </span>
                     {hintIndex < exercise.hints.length - 1 && (
                       <button
@@ -157,7 +167,7 @@ export default function PracticeDetailPage() {
                         onClick={() => setHintIndex((value) => value + 1)}
                         className="text-xs font-semibold text-amber-700 dark:text-amber-300"
                       >
-                        Next hint
+                        {t('practiceDetail.nextHint')}
                       </button>
                     )}
                   </div>
@@ -169,8 +179,8 @@ export default function PracticeDetailPage() {
           <section>
             <div className="flex items-end justify-between gap-4">
               <div>
-                <h2 className="font-display text-2xl font-bold">Success criteria</h2>
-                <p className="mt-1 text-sm text-muted">Check each item only when you can see it in your file.</p>
+                <h2 className="font-display text-2xl font-bold">{t('practiceDetail.criteria')}</h2>
+                <p className="mt-1 text-sm text-muted">{t('practiceDetail.criteriaLead')}</p>
               </div>
               <span className="text-xs font-semibold text-muted">
                 {checkedCount}/{exercise.criteria.length}
@@ -208,7 +218,7 @@ export default function PracticeDetailPage() {
 
             <div className="mt-5 rounded-2xl border border-excel-200/60 bg-excel-50/40 p-4 dark:border-excel-500/20 dark:bg-excel-500/5">
               <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-excel-700 dark:text-excel-300">
-                <Trophy size={13} /> Deliverable
+                <Trophy size={13} /> {t('practiceDetail.deliverable')}
               </div>
               <p className="mt-1.5 text-sm text-muted">{exercise.deliverable}</p>
               <button
@@ -217,7 +227,11 @@ export default function PracticeDetailPage() {
                 className={done ? 'btn-secondary mt-4' : 'btn-primary mt-4'}
               >
                 {done ? <CheckCircle2 size={15} /> : <Trophy size={15} />}
-                {done ? 'Mark project incomplete' : allChecked ? 'Mark project complete' : 'Mark complete anyway'}
+                {done
+                  ? t('practiceDetail.markIncomplete')
+                  : allChecked
+                    ? t('practiceDetail.markComplete')
+                    : t('practiceDetail.markAnyway')}
               </button>
             </div>
           </section>
@@ -225,17 +239,19 @@ export default function PracticeDetailPage() {
 
         <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
           <div className="card p-5">
-            <div className="text-xs font-semibold uppercase tracking-wide text-muted">Project file</div>
+            <div className="text-xs font-semibold uppercase tracking-wide text-muted">{t('practiceDetail.file')}</div>
             <div className="mt-3 flex items-center gap-2.5">
               <span className="grid h-10 w-10 place-items-center rounded-xl bg-ink-100 text-ink-700 dark:bg-white/10 dark:text-ink-200">
                 {exercise.starter ? <Download size={18} /> : <FileText size={18} />}
               </span>
               <div className="min-w-0">
                 <div className="truncate text-sm font-semibold">
-                  {exercise.starter?.filename ?? 'Create from blank'}
+                  {exercise.starter?.filename ?? t('practiceDetail.blank')}
                 </div>
                 <div className="text-[11px] text-muted">
-                  {exercise.starter ? `${exercise.starter.kind.toUpperCase()} starter` : 'No starter file'}
+                  {exercise.starter
+                    ? t('practiceDetail.starterKind', { kind: exercise.starter.kind.toUpperCase() })
+                    : t('practiceDetail.noStarter')}
                 </div>
               </div>
             </div>
@@ -246,35 +262,35 @@ export default function PracticeDetailPage() {
                 className="btn-secondary mt-3 w-full"
               >
                 <Download size={14} />
-                Download starter
+                {t('practiceDetail.downloadStarter')}
               </button>
             )}
             <div className="mt-3 rounded-lg bg-ink-50/70 p-2.5 text-[11px] leading-relaxed text-muted dark:bg-white/5">
               {exercise.pathId === 'word'
-                ? 'Open the starter in Word, complete the steps, then save with the deliverable name.'
-                : 'Open the CSV in Excel, complete the steps, then save as .xlsx with the deliverable name.'}
+                ? t('practiceDetail.wordHow')
+                : t('practiceDetail.excelHow')}
             </div>
           </div>
 
           <div className="card p-5">
             <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted">
-              <ListChecks size={13} /> At a glance
+              <ListChecks size={13} /> {t('practiceDetail.glance')}
             </div>
             <dl className="mt-3 space-y-2 text-xs">
               <div className="flex justify-between gap-3">
-                <dt className="text-muted">Difficulty</dt>
-                <dd className="font-medium">{exercise.difficulty}</dd>
+                <dt className="text-muted">{t('practiceDetail.difficulty')}</dt>
+                <dd className="font-medium">{t(`difficulty.${exercise.difficulty}`)}</dd>
               </div>
               <div className="flex justify-between gap-3">
-                <dt className="text-muted">Estimated time</dt>
-                <dd className="font-medium">{exercise.duration} min</dd>
+                <dt className="text-muted">{t('lesson.estimated')}</dt>
+                <dd className="font-medium">{t('common.min', { n: exercise.duration })}</dd>
               </div>
               <div className="flex justify-between gap-3">
-                <dt className="text-muted">Steps</dt>
+                <dt className="text-muted">{t('practiceDetail.stepsLabel')}</dt>
                 <dd className="font-medium">{exercise.steps.length}</dd>
               </div>
               <div className="flex justify-between gap-3">
-                <dt className="text-muted">Criteria</dt>
+                <dt className="text-muted">{t('practiceDetail.criteriaLabel')}</dt>
                 <dd className="font-medium">{exercise.criteria.length}</dd>
               </div>
             </dl>
@@ -286,8 +302,10 @@ export default function PracticeDetailPage() {
                 <FlaskConical size={17} />
               </span>
               <div>
-                <div className="text-sm font-semibold">Open the {exercise.lab} lab</div>
-                <div className="text-[11px] text-muted">Practice without installing Office</div>
+                <div className="text-sm font-semibold">
+                  {t('practiceDetail.openLab', { app: exercise.lab === 'word' ? 'Word' : 'Excel' })}
+                </div>
+                <div className="text-[11px] text-muted">{t('labs.title')}</div>
               </div>
               <ArrowRight size={14} className="ml-auto text-muted" />
             </Link>
@@ -302,13 +320,15 @@ export default function PracticeDetailPage() {
               <Printer size={16} />
             </span>
             <div>
-              <div className="text-sm font-semibold">Print this project</div>
-              <div className="text-[11px] text-muted">Keep the steps beside you</div>
+              <div className="text-sm font-semibold">{t('practiceDetail.print')}</div>
+              <div className="text-[11px] text-muted">{t('practiceDetail.printBody')}</div>
             </div>
           </button>
 
           <div className="card p-5">
-            <div className="text-xs font-semibold uppercase tracking-wide text-muted">More {exercise.pathId} projects</div>
+            <div className="text-xs font-semibold uppercase tracking-wide text-muted">
+              {t('practiceDetail.more', { app: isWord ? 'Word' : 'Excel' })}
+            </div>
             <div className="mt-3 space-y-2">
               {related.map((item) => (
                 <Link key={item.id} to={`/practice/${item.id}`} className="group flex items-center gap-2 text-xs">

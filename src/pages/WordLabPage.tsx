@@ -22,6 +22,10 @@ import {
   Undo2,
 } from 'lucide-react'
 import OfficeAppIcon from '../components/icons/OfficeAppIcon'
+import { useT, type MessageKey } from '../i18n'
+
+const EXERCISES: MessageKey[] = ['lab.word.ex1', 'lab.word.ex2', 'lab.word.ex3', 'lab.word.ex4', 'lab.word.ex5', 'lab.word.ex6']
+const HABITS: MessageKey[] = ['lab.word.h1', 'lab.word.h2', 'lab.word.h3', 'lab.word.h4', 'lab.word.h5']
 
 const initialHtml = `<h1>Business Memo</h1>
 <p><strong>To:</strong> All staff<br/><strong>From:</strong> Operations Manager<br/><strong>Date:</strong> 12 March 2026<br/><strong>Subject:</strong> New supply request process</p>
@@ -61,6 +65,7 @@ function Divider() {
 }
 
 export default function WordLabPage() {
+  const t = useT()
   const editorRef = useRef<HTMLDivElement>(null)
   const [words, setWords] = useState(0)
   const [resetKey, setResetKey] = useState(0)
@@ -101,37 +106,36 @@ export default function WordLabPage() {
 
   return (
     <div className="space-y-6">
-      <nav className="flex items-center gap-1.5 text-xs text-muted" aria-label="Breadcrumb">
+      <nav className="flex items-center gap-1.5 text-xs text-muted" aria-label={t('lesson.breadcrumb')}>
         <Link to="/labs" className="hover:text-[var(--text-strong)]">
-          Labs
+          {t('nav.labs')}
         </Link>
         <span>/</span>
-        <span className="text-[var(--text-strong)]">Word editing lab</span>
+        <span className="text-[var(--text-strong)]">{t('labs.word.title')}</span>
       </nav>
 
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <span className="section-label">
-            <FlaskConical size={13} /> Interactive lab
+            <FlaskConical size={13} /> {t('lab.interactive')}
           </span>
-          <h1 className="mt-2 font-display text-3xl font-extrabold tracking-tight">Word editing lab</h1>
+          <h1 className="mt-2 font-display text-3xl font-extrabold tracking-tight">{t('labs.word.title')}</h1>
           <p className="mt-2 max-w-2xl text-sm text-muted">
-            Practice headings, bold text, alignment, and lists in a simplified editor. This is a simulation,
-            not Microsoft Word, and your work is not saved after you leave the page.
+            {t('lab.word.lead')}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <button type="button" onClick={reset} className="btn-secondary">
             <RotateCcw size={14} />
-            Reset document
+            {t('lab.word.reset')}
           </button>
           <button type="button" onClick={downloadText} className="btn-secondary">
             <Download size={14} />
-            Download text
+            {t('lab.word.download')}
           </button>
           <button type="button" onClick={() => window.print()} className="btn-primary">
             <Printer size={14} />
-            Print
+            {t('lab.print')}
           </button>
         </div>
       </header>
@@ -142,7 +146,7 @@ export default function WordLabPage() {
             <div className="flex items-center gap-2 border-b hairline bg-ink-50/70 px-3 py-2 dark:bg-white/[0.04]">
               <OfficeAppIcon app="word" size={24} />
               <span className="text-xs font-semibold">Business-Memo.docx</span>
-              <span className="ml-auto text-[10px] text-muted">Simulation · not saved</span>
+              <span className="ml-auto text-[10px] text-muted">{t('lab.simulation')}</span>
             </div>
 
             <div className="flex flex-wrap items-center gap-0.5 border-b hairline bg-white/70 px-2 py-1.5 dark:bg-white/[0.02]">
@@ -189,7 +193,7 @@ export default function WordLabPage() {
               </ToolButton>
               <label
                 className="ml-1 grid h-8 w-8 cursor-pointer place-items-center rounded-lg text-muted transition hover:bg-ink-100 dark:hover:bg-white/10"
-                title="Text color"
+                title={t('lab.word.textColor')}
               >
                 <Palette size={15} />
                 <input
@@ -200,7 +204,7 @@ export default function WordLabPage() {
                     run('foreColor', event.target.value)
                   }}
                   className="sr-only"
-                  aria-label="Text color"
+                  aria-label={t('lab.word.textColor')}
                 />
               </label>
               <Divider />
@@ -237,7 +241,7 @@ export default function WordLabPage() {
                 onMouseUp={updateCount}
                 role="textbox"
                 aria-multiline="true"
-                aria-label="Word document editor"
+                aria-label={t('lab.word.editor')}
                 className="word-page mx-auto min-h-[560px] max-w-[680px] rounded-sm bg-white px-8 py-10 text-[14px] leading-relaxed text-ink-900 shadow-lift outline-none sm:px-12"
               />
             </div>
@@ -245,7 +249,7 @@ export default function WordLabPage() {
             <div className="flex items-center gap-4 border-t hairline bg-ink-50/60 px-3 py-2 text-[11px] text-muted dark:bg-white/[0.03]">
               <span>{words} words</span>
               <span>Page 1 of 1</span>
-              <span className="ml-auto hidden sm:inline">Select text, then use the toolbar</span>
+              <span className="ml-auto hidden sm:inline">{t('lab.word.hint')}</span>
             </div>
           </div>
 
@@ -261,33 +265,28 @@ export default function WordLabPage() {
 
         <aside className="space-y-4">
           <div className="card p-5">
-            <h2 className="text-sm font-bold">Mini exercises</h2>
+            <h2 className="text-sm font-bold">{t('lab.word.exercises')}</h2>
             <ol className="mt-2 space-y-2 text-xs text-muted">
-              <li>1. Select the memo title and apply H1.</li>
-              <li>2. Make the four header labels bold.</li>
-              <li>3. Select the three action items and turn them into a numbered list.</li>
-              <li>4. Center the title, then return the body to left alignment.</li>
-              <li>5. Use the color button to make "Purpose" stand out.</li>
-              <li>6. Clear formatting on one paragraph and rebuild it.</li>
+              {EXERCISES.map((key) => (
+                <li key={key}>{t(key)}</li>
+              ))}
             </ol>
           </div>
 
           <div className="card p-5">
-            <h2 className="text-sm font-bold">Word habits to keep</h2>
+            <h2 className="text-sm font-bold">{t('lab.word.habits')}</h2>
             <ul className="mt-2 space-y-2 text-xs text-muted">
-              <li>Use real headings, not just big bold text.</li>
-              <li>Use paragraph spacing instead of repeated Enter presses.</li>
-              <li>Keep alignment consistent across the document.</li>
-              <li>Use numbered lists only when order matters.</li>
-              <li>Save before exporting or printing.</li>
+              {HABITS.map((key) => (
+                <li key={key}>{t(key)}</li>
+              ))}
             </ul>
           </div>
 
           <Link to="/lesson/w2-1" className="card lift flex items-center gap-3 p-4">
             <ArrowLeft size={15} className="text-muted" />
             <div>
-              <div className="text-sm font-semibold">Review formatting</div>
-              <div className="text-[11px] text-muted">Lesson w2-1: Fonts and character formatting</div>
+              <div className="text-sm font-semibold">{t('lab.word.review')}</div>
+              <div className="text-[11px] text-muted">{t('lab.word.reviewLesson')}</div>
             </div>
           </Link>
         </aside>

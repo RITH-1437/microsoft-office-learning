@@ -5,14 +5,11 @@ import { GraduationCap, Sparkles, Table2 } from 'lucide-react'
 import { duration, ease, fadeUp, stagger, staggerContainer, useRichMotion } from '../lib/motion'
 import CountUp from './motion/CountUp'
 import OfficeAppIcon from './icons/OfficeAppIcon'
+import { useLocale, useT } from '../i18n'
 
-const line1 = ['Learn', 'Word', 'and', 'Excel.']
-const line2 = [
-  { word: 'Do', tone: 'text-word-600 dark:text-word-300' },
-  { word: 'real', tone: 'text-word-600 dark:text-word-300' },
-  { word: 'office', tone: 'text-excel-600 dark:text-excel-300' },
-  { word: 'work.', tone: 'text-excel-600 dark:text-excel-300' },
-]
+const WORD_TONE = 'text-word-600 dark:text-word-300'
+const EXCEL_TONE = 'text-excel-600 dark:text-excel-300'
+const words = (text: string) => text.split(' ').filter(Boolean)
 
 const wordReveal = {
   hidden: { opacity: 0, y: '0.55em' },
@@ -20,17 +17,26 @@ const wordReveal = {
 }
 
 function Headline() {
+  const t = useT()
+  const locale = useLocale()
+  const line1 = words(t('hero.line1'))
+  const line2 = [
+    ...words(t('hero.line2a')).map((word) => ({ word, tone: WORD_TONE })),
+    ...words(t('hero.line2b')).map((word) => ({ word, tone: EXCEL_TONE })),
+  ]
   return (
     <m.h1
+      // Re-key on language change so the word reveal replays with the new words.
+      key={locale}
       className="display-hero mt-5 font-display"
       variants={staggerContainer(0.1, stagger.tight)}
       initial="hidden"
       animate="show"
-      aria-label="Learn Word and Excel. Do real office work."
+      aria-label={`${t('hero.line1')} ${t('hero.line2a')} ${t('hero.line2b')}`}
     >
       <span aria-hidden="true">
-        {line1.map((word) => (
-          <Fragment key={word}>
+        {line1.map((word, index) => (
+          <Fragment key={`a-${index}`}>
             <span className="-my-[0.12em] inline-block overflow-hidden py-[0.12em] align-bottom">
               <m.span className="hero-headline-word" variants={wordReveal}>
                 {word}
@@ -39,8 +45,8 @@ function Headline() {
           </Fragment>
         ))}
         <br />
-        {line2.map(({ word, tone }) => (
-          <Fragment key={word}>
+        {line2.map(({ word, tone }, index) => (
+          <Fragment key={`b-${index}`}>
             <span className="-my-[0.12em] inline-block overflow-hidden py-[0.12em] align-bottom">
               <m.span className={`hero-headline-word ${tone}`} variants={wordReveal}>
                 {word}
@@ -146,6 +152,7 @@ function Composition() {
 }
 
 export default function Hero() {
+  const t = useT()
   return (
     <section
       data-no-reveal
@@ -159,32 +166,31 @@ export default function Hero() {
             className="inline-flex items-center gap-2 rounded-full border border-word-200/70 bg-white/70 px-3 py-1 text-xs font-semibold text-word-700 shadow-sm dark:border-word-500/20 dark:bg-word-500/10 dark:text-word-200"
           >
             <Sparkles size={13} aria-hidden="true" />
-            A complete beginner-to-confident course
+            {t('hero.badge')}
           </m.div>
 
           <Headline />
 
           <m.p variants={fadeUp} className="reading mt-6 text-base text-muted sm:text-lg">
-            Build the documents and spreadsheets an office actually runs on — step by step, with no prior
-            experience needed.
+            {t('hero.lead')}
           </m.p>
 
           <m.div variants={fadeUp} className="mt-8 flex flex-wrap items-center gap-3">
             <Link to="/paths" className="btn-primary px-6 py-3.5 text-[15px]">
               <GraduationCap size={18} />
-              Start the course
+              {t('hero.start')}
             </Link>
             <Link to="/labs" className="btn-secondary px-6 py-3.5 text-[15px]">
               <Table2 size={17} />
-              Try the labs
+              {t('hero.labs')}
             </Link>
           </m.div>
 
           <m.div variants={fadeUp} className="mt-10 grid max-w-md grid-cols-3 gap-3">
             {[
-              { value: 38, label: 'lessons' },
-              { value: 12, label: 'projects' },
-              { value: 110, label: 'questions' },
+              { value: 38, label: t('hero.lessons') },
+              { value: 12, label: t('hero.projects') },
+              { value: 110, label: t('hero.questions') },
             ].map((stat) => (
               <div key={stat.label} className="rounded-xl border hairline bg-white/55 px-3 py-2.5 dark:bg-white/5">
                 <div className="font-display text-2xl font-bold">

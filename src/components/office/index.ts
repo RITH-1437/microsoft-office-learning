@@ -1,0 +1,7 @@
+export { default as OfficeInterfacePreview } from './OfficeInterfacePreview'
+export { default as OfficeToolbarHighlight } from './OfficeToolbarHighlight'
+export { default as OfficeStepGuide } from './OfficeStepGuide'
+export { default as OfficeComparison } from './OfficeComparison'
+export { default as OfficeScreenshot } from './OfficeScreenshot'
+export { default as OfficePracticePreview } from './OfficePracticePreview'
+export { default as Workspace, WordPage, ExcelSheet } from './OfficeWorkspace'

@@ -1,19 +1,23 @@
 import { Link } from 'react-router-dom'
 import { ArrowRight, CheckCircle2, FlaskConical, Info } from 'lucide-react'
 import OfficeAppIcon from '../components/icons/OfficeAppIcon'
+import { useT, type MessageKey } from '../i18n'
+
+const wordFeatures: MessageKey[] = ['labs.word.f1', 'labs.word.f2', 'labs.word.f3', 'labs.word.f4']
+const excelFeatures: MessageKey[] = ['labs.excel.f1', 'labs.excel.f2', 'labs.excel.f3', 'labs.excel.f4']
 
 export default function LabsPage() {
+  const t = useT()
   return (
     <div className="space-y-10">
       <header className="max-w-3xl">
         <span className="section-label">
           <FlaskConical size={13} />
-          Interactive labs
+          {t('labs.label')}
         </span>
-        <h1 className="mt-2 font-display text-4xl font-extrabold tracking-tight">Practice without installing Office</h1>
+        <h1 className="mt-2 font-display text-4xl font-extrabold tracking-tight">{t('labs.title')}</h1>
         <p className="mt-3 text-lg text-muted">
-          Two simplified simulations for the core skills: formatting a document and writing formulas. They
-          are learning tools, not replacements for the real applications.
+          {t('labs.lead')}
         </p>
       </header>
 
@@ -25,23 +29,20 @@ export default function LabsPage() {
           <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-word-300/40 blur-3xl" aria-hidden="true" />
           <div className="relative">
             <OfficeAppIcon app="word" size={48} />
-            <h2 className="mt-5 font-display text-2xl font-bold">Word editing lab</h2>
+            <h2 className="mt-5 font-display text-2xl font-bold">{t('labs.word.title')}</h2>
             <p className="mt-2 text-sm leading-relaxed text-muted">
-              Edit a memo, apply headings, bold text, alignment, lists, and colors. Watch the word count
-              update as you type.
+              {t('labs.word.body')}
             </p>
             <ul className="mt-4 space-y-1.5">
-              {['Heading and body styles', 'Bold, italic, underline, color', 'Alignment and lists', 'Print or download text'].map(
-                (item) => (
-                  <li key={item} className="flex items-center gap-2 text-xs text-muted">
-                    <CheckCircle2 size={12} className="text-excel-500" />
-                    {item}
-                  </li>
-                ),
-              )}
+              {wordFeatures.map((item) => (
+                <li key={item} className="flex items-center gap-2 text-xs text-muted">
+                  <CheckCircle2 size={12} className="shrink-0 text-excel-500" />
+                  {t(item)}
+                </li>
+              ))}
             </ul>
             <span className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-word-700 dark:text-word-300">
-              Open Word lab
+              {t('labs.word.open')}
               <ArrowRight size={15} className="transition group-hover:translate-x-0.5" />
             </span>
           </div>
@@ -54,23 +55,20 @@ export default function LabsPage() {
           <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-excel-300/40 blur-3xl" aria-hidden="true" />
           <div className="relative">
             <OfficeAppIcon app="excel" size={48} />
-            <h2 className="mt-5 font-display text-2xl font-bold">Excel formula lab</h2>
+            <h2 className="mt-5 font-display text-2xl font-bold">{t('labs.excel.title')}</h2>
             <p className="mt-2 text-sm leading-relaxed text-muted">
-              A working 10 × 16 grid with a formula engine. Type values, references, and functions, then see
-              the results immediately.
+              {t('labs.excel.body')}
             </p>
             <ul className="mt-4 space-y-1.5">
-              {['Arithmetic and cell references', 'SUM, AVERAGE, MIN, MAX', 'IF, COUNTIF, SUMIF, VLOOKUP', 'Error codes and export'].map(
-                (item) => (
-                  <li key={item} className="flex items-center gap-2 text-xs text-muted">
-                    <CheckCircle2 size={12} className="text-excel-500" />
-                    {item}
-                  </li>
-                ),
-              )}
+              {excelFeatures.map((item) => (
+                <li key={item} className="flex items-center gap-2 text-xs text-muted">
+                  <CheckCircle2 size={12} className="shrink-0 text-excel-500" />
+                  {t(item)}
+                </li>
+              ))}
             </ul>
             <span className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-excel-700 dark:text-excel-300">
-              Open Excel lab
+              {t('labs.excel.open')}
               <ArrowRight size={15} className="transition group-hover:translate-x-0.5" />
             </span>
           </div>
@@ -81,19 +79,19 @@ export default function LabsPage() {
         <div className="flex items-start gap-3">
           <Info size={18} className="mt-0.5 shrink-0 text-word-500" />
           <div>
-            <h2 className="font-display text-lg font-bold">What the labs are — and are not</h2>
+            <h2 className="font-display text-lg font-bold">{t('labs.aboutTitle')}</h2>
             <p className="mt-1.5 max-w-3xl text-sm leading-relaxed text-muted">
-              The labs run entirely in your browser. They are intentionally simplified: they do not save
-              Office files, do not reproduce every ribbon command, and do not include real Word or Excel
-              file handling. Use them to build confidence, then repeat the task in the real application.
-              Nothing you type in a lab is uploaded or stored.
+              {t('labs.aboutBody')}
             </p>
             <div className="mt-4 flex flex-wrap gap-3">
+              <Link to="/interface/word" className="btn-secondary">
+                {t('labs.screens')}
+              </Link>
               <Link to="/practice" className="btn-secondary">
-                Go to a full project
+                {t('labs.fullProject')}
               </Link>
               <Link to="/resources" className="btn-ghost">
-                Browse shortcuts
+                {t('labs.shortcuts')}
                 <ArrowRight size={14} />
               </Link>
             </div>

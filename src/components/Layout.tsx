@@ -16,19 +16,21 @@ import {
 } from 'lucide-react'
 import { applyTheme, useProgress } from '../store/progress'
 import { ease, duration } from '../lib/motion'
+import { useT, type MessageKey } from '../i18n'
 import AnimatedCursor from './AnimatedCursor'
+import LanguageToggle from './LanguageToggle'
 import LogoMark from './LogoMark'
 import MotionEffects from './MotionEffects'
 import RouteSkeleton from './motion/RouteSkeleton'
 
-const navItems = [
-  { to: '/', label: 'Home', icon: Home },
-  { to: '/paths', label: 'Paths', icon: BookOpen },
-  { to: '/quizzes', label: 'Quizzes', icon: ClipboardCheck },
-  { to: '/practice', label: 'Practice', icon: FlaskConical },
-  { to: '/labs', label: 'Labs', icon: Table2 },
-  { to: '/progress', label: 'Progress', icon: BarChart3 },
-  { to: '/resources', label: 'Resources', icon: Library },
+const navItems: { to: string; label: MessageKey; icon: typeof Home }[] = [
+  { to: '/', label: 'nav.home', icon: Home },
+  { to: '/paths', label: 'nav.paths', icon: BookOpen },
+  { to: '/quizzes', label: 'nav.quizzes', icon: ClipboardCheck },
+  { to: '/practice', label: 'nav.practice', icon: FlaskConical },
+  { to: '/labs', label: 'nav.labs', icon: Table2 },
+  { to: '/progress', label: 'nav.progress', icon: BarChart3 },
+  { to: '/resources', label: 'nav.resources', icon: Library },
 ]
 
 function ScrollToTop() {
@@ -65,6 +67,8 @@ export default function Layout() {
   const setOpen = (next: boolean) => setMenuPath(next ? pathname : null)
   const theme = useProgress((state) => state.theme)
   const toggleTheme = useProgress((state) => state.toggleTheme)
+  const locale = useProgress((state) => state.locale)
+  const t = useT()
   const navRef = useRef<HTMLElement>(null)
   const [indicator, setIndicator] = useState<{ x: number; w: number } | null>(null)
 
@@ -76,6 +80,10 @@ export default function Layout() {
     media.addEventListener('change', listener)
     return () => media.removeEventListener('change', listener)
   }, [theme])
+
+  useEffect(() => {
+    document.documentElement.lang = locale
+  }, [locale])
 
   // Slide the nav pill under the active link (transform + width only).
   useLayoutEffect(() => {
@@ -92,7 +100,8 @@ export default function Layout() {
     window.addEventListener('resize', place)
     document.fonts?.ready.then(place).catch(() => undefined)
     return () => window.removeEventListener('resize', place)
-  }, [pathname])
+    // Labels change width when the language changes, so re-measure then too.
+  }, [pathname, locale])
 
   const isDark =
     theme === 'dark' ||
@@ -113,12 +122,12 @@ export default function Layout() {
         href="#main-content"
         className="no-print sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[80] focus:rounded-lg focus:bg-word-600 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white"
       >
-        Skip to content
+        {t('nav.skip')}
       </a>
 
       <header className="no-print sticky top-0 z-50 glass-nav">
         <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:px-6">
-          <Link to="/" className="flex shrink-0 items-center gap-2.5" aria-label="Office Academy home">
+          <Link to="/" className="flex shrink-0 items-center gap-2.5" aria-label={t('nav.homeLink')}>
             <LogoMark className="h-9 w-9" />
             <span className="leading-tight">
               <span className="block font-display text-[15px] font-extrabold tracking-tight">Office Academy</span>
@@ -131,7 +140,7 @@ export default function Layout() {
           <nav
             ref={navRef}
             className="relative ml-4 hidden items-center gap-0.5 lg:flex"
-            aria-label="Main navigation"
+            aria-label={t('nav.main')}
           >
             <span
               className="nav-indicator"
@@ -153,17 +162,18 @@ export default function Layout() {
                   }`
                 }
               >
-                {item.label}
+                {t(item.label)}
               </NavLink>
             ))}
           </nav>
 
           <div className="ml-auto flex items-center gap-2">
+            <LanguageToggle />
             <button
               type="button"
               onClick={toggleTheme}
               className="grid h-10 w-10 place-items-center overflow-hidden rounded-lg border hairline bg-white/40 text-muted transition hover:text-[var(--text-strong)] dark:bg-white/5"
-              aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+              aria-label={isDark ? t('theme.toLight') : t('theme.toDark')}
             >
               <AnimatePresence mode="wait" initial={false}>
                 <m.span
@@ -178,15 +188,15 @@ export default function Layout() {
                 </m.span>
               </AnimatePresence>
             </button>
-            <Link to="/paths" className="btn-primary hidden sm:inline-flex">
+            <Link to="/paths" className="btn-primary hidden sm:inline-flex lg:hidden xl:inline-flex">
               <BookOpen size={16} />
-              Start learning
+              {t('nav.startLearning')}
             </Link>
             <button
               type="button"
               onClick={() => setOpen(!open)}
               className="grid h-10 w-10 place-items-center rounded-lg border hairline bg-white/40 text-muted lg:hidden dark:bg-white/5"
-              aria-label={open ? 'Close menu' : 'Open menu'}
+              aria-label={open ? t('nav.closeMenu') : t('nav.openMenu')}
               aria-expanded={open}
               aria-controls="mobile-navigation"
             >
@@ -201,7 +211,7 @@ export default function Layout() {
               id="mobile-navigation"
               key="mobile-nav"
               className="border-t hairline px-3 pb-4 pt-2 lg:hidden"
-              aria-label="Mobile navigation"
+              aria-label={t('nav.mobile')}
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
@@ -230,7 +240,7 @@ export default function Layout() {
                         }
                       >
                         <Icon size={16} />
-                        {item.label}
+                        {t(item.label)}
                       </NavLink>
                     </m.div>
                   )
@@ -257,19 +267,19 @@ export default function Layout() {
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-8 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <div className="flex items-center gap-2 text-sm text-muted">
             <LogoMark className="h-5 w-5" />
-            <span>Office Academy — a practical Word and Excel course.</span>
+            <span>{t('footer.tagline')}</span>
           </div>
           <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted">
             <Link to="/resources" className="hover:text-[var(--text-strong)]">
-              Shortcuts
+              {t('footer.shortcuts')}
             </Link>
             <Link to="/practice" className="hover:text-[var(--text-strong)]">
-              Projects
+              {t('footer.projects')}
             </Link>
             <Link to="/progress" className="hover:text-[var(--text-strong)]">
-              My progress
+              {t('footer.myProgress')}
             </Link>
-            <span>Progress stays in this browser.</span>
+            <span>{t('footer.local')}</span>
           </div>
         </div>
       </footer>

@@ -9,7 +9,7 @@ Office Academy is a static Vite + React single-page app (no backend, no database
 | **CI** | `ci.yml` | push to `main`, `feat/**`, `fix/**`, `content/**`, `chore/**`; PRs to `main`; manual | `quality` (calls Code quality) → `tests` (unit tests if present + curriculum data integrity) → `build` (production build, output verification, 7-day artifact) | `contents: read` |
 | **Code quality** | `code-quality.yml` | `workflow_call` (from CI), manual | Oxlint, `tsc -b`, formatter check (reported as *not configured*) | `contents: read` |
 | **Pull request** | `pull-request.yml` | PRs to `main` | change-set hygiene: no `dist/`/`.env` committed, lockfile consistency, no files > 1 MB, summary of required checks, content-change notice | `contents: read` |
-| **Security** | `security.yml` | push to `main`, PRs, weekly (Mon 06:17 UTC), manual | `npm audit` (prod deps fail on high/critical; all deps reported), secrets & artefact hygiene scan, dependency review (PRs), CodeQL (opt-in) | `contents: read` (+ `security-events: write` for CodeQL only) |
+| **Security** | `security.yml` | push to `main`, PRs, weekly (Mon 06:17 UTC), manual | `npm audit` (prod deps fail on high/critical; all deps reported), secrets & artefact hygiene scan, dependency review (PRs, opt-in until Dependency graph is enabled), CodeQL (opt-in) | `contents: read` (+ `security-events: write` for CodeQL only) |
 | **Deploy preview** | `deploy-preview.yml` | PRs to `main` from this repo (non-draft) | Vercel preview via CLI (`vercel pull/build/deploy --prebuilt`); skips with a summary when secrets are absent | `contents: read` + `preview` environment |
 | **Deploy production** | `deploy-production.yml` | `workflow_run` of **CI** on `main` (success only), manual | re-verify (lint, types, data) → Vercel production deploy; skips when secrets are absent | `contents: read` + `production` environment (approval can be required) |
 
@@ -40,6 +40,7 @@ Branch protection should require: `CI / Lint & type-check`, `CI / Tests & data i
 - **Fork safety.** Deployment workflows use `pull_request` (never `pull_request_target`) and additionally require `head.repo.full_name == github.repository`, so fork PRs never see secrets. `deploy-production` runs on `workflow_run`, which executes the workflow file from `main`, not from the PR.
 - **Graceful when not configured.** Preview and production deploy check for secrets in a first step and skip the rest with a clear summary. If the Vercel GitHub integration is connected, leave the secrets unset and Vercel handles deployments itself.
 - **Concurrency.** CI cancels superseded runs per ref; previews cancel per PR; production never cancels an in-flight deploy.
+- **Shell.** Every workflow sets `defaults.run.shell: bash` so pipelines run with `-eo pipefail` (a `| tee` once hid a failing `tsc`).
 - **Actions pinning.** GitHub-owned actions (`actions/*`, `github/codeql-action`) are pinned to major tags; Dependabot keeps them current. Pinning to commit SHAs is a documented follow-up (`ci-cd-setup.md` → Hardening).
 - **Reports.** Each job appends Markdown to `$GITHUB_STEP_SUMMARY`: lint/tsc logs, test status, data-integrity output, build size table, audit counts, changed files, deployment URL.
 

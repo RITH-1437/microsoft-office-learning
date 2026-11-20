@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { QuizAttempt } from '../types'
+import type { Locale } from '../i18n'
 
 export type Theme = 'light' | 'dark' | 'system'
 
@@ -10,6 +11,9 @@ interface ProgressState {
   completedExercises: Record<string, string>
   lastLessonId?: string
   theme: Theme
+  /** UI language. Lesson content stays English; only interface chrome is translated. */
+  locale: Locale
+  setLocale: (locale: Locale) => void
   setTheme: (theme: Theme) => void
   toggleTheme: () => void
   markLessonComplete: (lessonId: string) => void
@@ -28,6 +32,10 @@ export function applyTheme(theme: Theme) {
   document.documentElement.classList.toggle('dark', dark)
 }
 
+function applyLang(locale: Locale) {
+  if (typeof document !== 'undefined') document.documentElement.lang = locale
+}
+
 const now = () => new Date().toISOString()
 
 const asRecord = <T,>(value: unknown): Record<string, T> =>
@@ -38,7 +46,7 @@ const asRecord = <T,>(value: unknown): Record<string, T> =>
  * known keys with the expected shape are restored. Anything else falls back to defaults
  * instead of crashing the first page that reads it.
  */
-type PersistedProgress = Pick<ProgressState, 'completedLessons' | 'quizAttempts' | 'completedExercises' | 'lastLessonId' | 'theme'>
+type PersistedProgress = Pick<ProgressState, 'completedLessons' | 'quizAttempts' | 'completedExercises' | 'lastLessonId' | 'theme' | 'locale'>
 
 function mergePersisted(persisted: unknown, current: ProgressState): ProgressState {
   const saved = asRecord<unknown>(persisted)
@@ -50,6 +58,7 @@ function mergePersisted(persisted: unknown, current: ProgressState): ProgressSta
     completedExercises: asRecord<string>(saved.completedExercises),
     lastLessonId: typeof saved.lastLessonId === 'string' ? saved.lastLessonId : undefined,
     theme: theme === 'light' || theme === 'dark' || theme === 'system' ? theme : 'system',
+    locale: saved.locale === 'km' ? 'km' : 'en',
   }
 }
 
@@ -60,6 +69,11 @@ export const useProgress = create<ProgressState>()(
       quizAttempts: {},
       completedExercises: {},
       theme: 'system',
+      locale: 'en',
+      setLocale: (locale) => {
+        applyLang(locale)
+        set({ locale })
+      },
       setTheme: (theme) => {
         applyTheme(theme)
         set({ theme })
@@ -125,8 +139,9 @@ export const useProgress = create<ProgressState>()(
     }),
     {
       name: 'office-academy-progress',
-      version: 1,
-      // Older/unknown versions are accepted as-is; `merge` validates the shape.
+      // v2 adds `locale`. Older/unknown versions are accepted as-is; `merge` validates the
+      // shape and defaults a missing locale to English, so v1 progress is kept intact.
+      version: 2,
       migrate: (persisted) => persisted as PersistedProgress,
       merge: mergePersisted,
       partialize: (state) => ({
@@ -135,9 +150,11 @@ export const useProgress = create<ProgressState>()(
         completedExercises: state.completedExercises,
         lastLessonId: state.lastLessonId,
         theme: state.theme,
+        locale: state.locale,
       }),
       onRehydrateStorage: () => (state) => {
         applyTheme(state?.theme ?? 'system')
+        applyLang(state?.locale ?? 'en')
       },
     },
   ),

@@ -17,6 +17,7 @@ const WordLabPage = lazy(() => import('./pages/WordLabPage'))
 const ExcelLabPage = lazy(() => import('./pages/ExcelLabPage'))
 const ProgressPage = lazy(() => import('./pages/ProgressPage'))
 const ResourcesPage = lazy(() => import('./pages/ResourcesPage'))
+const InterfaceGuidePage = lazy(() => import('./pages/InterfaceGuidePage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 
 export default function App() {
@@ -38,6 +39,8 @@ export default function App() {
             <Route path="labs/excel" element={<ExcelLabPage />} />
             <Route path="progress" element={<ProgressPage />} />
             <Route path="resources" element={<ResourcesPage />} />
+            <Route path="interface" element={<InterfaceGuidePage />} />
+            <Route path="interface/:app" element={<InterfaceGuidePage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Routes>

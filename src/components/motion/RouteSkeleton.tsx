@@ -1,13 +1,15 @@
 import LogoMark from '../LogoMark'
+import { useT } from '../../i18n'
 
 /**
  * Suspense fallback while a lazy route chunk loads. Reserves roughly the same space
  * as a real page (no layout shift) and is announced politely to assistive tech.
  */
 export default function RouteSkeleton() {
+  const t = useT()
   return (
     <div role="status" aria-live="polite" className="min-h-[70vh] space-y-8" data-no-reveal>
-      <span className="sr-only">Loading page…</span>
+      <span className="sr-only">{t('common.loading')}</span>
       <div className="flex items-center gap-3" aria-hidden="true">
         <LogoMark className="logo-pulse h-9 w-9" />
         <div className="space-y-2">

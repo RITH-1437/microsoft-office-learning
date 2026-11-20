@@ -4,7 +4,8 @@ import { ArrowRight, BookOpen, Briefcase, Flame, Table2 } from 'lucide-react'
 import { allLessons, getPathLessons } from '../data/curriculum'
 import { exercises } from '../data/exercises'
 import { useProgress } from '../store/progress'
-import { computeStreak, greeting } from '../lib/streak'
+import { computeStreak } from '../lib/streak'
+import { greetingKey, pluralKey, useT } from '../i18n'
 import { fadeUp, staggerContainer } from '../lib/motion'
 import CountUp from './motion/CountUp'
 import ProgressRing from './motion/ProgressRing'
@@ -41,6 +42,7 @@ export default function DashboardSummary({ compact = false }: { compact?: boolea
   const completedExercises = useProgress((state) => state.completedExercises)
   const quizAttempts = useProgress((state) => state.quizAttempts)
   const lastLessonId = useProgress((state) => state.lastLessonId)
+  const t = useT()
 
   const wordLessons = getPathLessons('word')
   const excelLessons = getPathLessons('excel')
@@ -74,24 +76,24 @@ export default function DashboardSummary({ compact = false }: { compact?: boolea
   }[] = [
     {
       tone: 'word',
-      title: 'Microsoft Word',
-      detail: `${wordDone} of ${wordLessons.length} lessons`,
+      title: t('dash.word'),
+      detail: t('common.ofLessons', { done: wordDone, total: wordLessons.length }),
       value: pct(wordDone, wordLessons.length),
       to: '/paths/word',
       icon: BookOpen,
     },
     {
       tone: 'excel',
-      title: 'Microsoft Excel',
-      detail: `${excelDone} of ${excelLessons.length} lessons`,
+      title: t('dash.excel'),
+      detail: t('common.ofLessons', { done: excelDone, total: excelLessons.length }),
       value: pct(excelDone, excelLessons.length),
       to: '/paths/excel',
       icon: Table2,
     },
     {
       tone: 'admin',
-      title: 'Administrative skills',
-      detail: `${adminDone} of ${adminProjects.length} projects`,
+      title: t('dash.admin'),
+      detail: t('common.ofProjects', { done: adminDone, total: adminProjects.length }),
       value: pct(adminDone, adminProjects.length),
       to: '/practice',
       icon: Briefcase,
@@ -101,7 +103,7 @@ export default function DashboardSummary({ compact = false }: { compact?: boolea
   return (
     <m.section
       data-no-reveal
-      aria-label="Your learning dashboard"
+      aria-label={t('dash.label')}
       variants={staggerContainer(0.05)}
       initial="hidden"
       animate="show"
@@ -109,16 +111,16 @@ export default function DashboardSummary({ compact = false }: { compact?: boolea
     >
       <m.div variants={fadeUp} className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <div className="eyebrow text-muted">{hasProgress ? 'Welcome back' : 'Your dashboard'}</div>
+          <div className="eyebrow text-muted">{hasProgress ? t('dash.welcomeBack') : t('dash.yourDashboard')}</div>
           <h2 className="mt-1 font-display text-2xl font-extrabold tracking-tight sm:text-3xl">
-            {greeting()}
-            {hasProgress ? ' — keep going.' : ' — ready to start?'}
+            {t(greetingKey())}
+            {hasProgress ? t('dash.keepGoing') : t('dash.readyToStart')}
           </h2>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <div
             className="inline-flex items-center gap-2 rounded-full border hairline bg-white/60 px-3.5 py-2 text-sm font-semibold dark:bg-white/5"
-            aria-label={`Learning streak: ${streak.current} ${streak.current === 1 ? 'day' : 'days'}`}
+            aria-label={t(pluralKey('dash.streakLabel', streak.current), { n: streak.current })}
           >
             <Flame
               size={16}
@@ -126,15 +128,19 @@ export default function DashboardSummary({ compact = false }: { compact?: boolea
               aria-hidden="true"
             />
             <span aria-hidden="true">
-              <CountUp value={streak.current} /> day{streak.current === 1 ? '' : 's'}
+              <CountUp value={streak.current} /> {t(pluralKey('dash.days', streak.current))}
             </span>
             <span className="text-xs font-medium text-muted" aria-hidden="true">
-              {streak.current === 0 ? 'start today' : streak.activeToday ? 'done today' : 'learn today to keep it'}
+              {streak.current === 0
+                ? t('dash.startToday')
+                : streak.activeToday
+                  ? t('dash.doneToday')
+                  : t('dash.keepIt')}
             </span>
           </div>
           {resume && (
             <Link to={`/lesson/${resume.id}`} className="btn-primary">
-              {hasProgress ? 'Resume lesson' : 'Start lesson 1'}
+              {hasProgress ? t('dash.resume') : t('dash.startFirst')}
               <ArrowRight size={15} />
             </Link>
           )}
@@ -153,7 +159,7 @@ export default function DashboardSummary({ compact = false }: { compact?: boolea
                   className={`surface-solid lift relative flex h-full items-center gap-4 overflow-hidden rounded-2xl p-4 ${style.wash}`}
                 >
                   <span className="tilt-glow" aria-hidden="true" />
-                  <ProgressRing value={track.value} tone={track.tone} size={84} stroke={8} label={`${track.title} progress`}>
+                  <ProgressRing value={track.value} tone={track.tone} size={84} stroke={8} label={t('common.progressOf', { name: track.title })}>
                     <span className="font-display text-lg font-bold">
                       <CountUp value={track.value} suffix="%" />
                     </span>

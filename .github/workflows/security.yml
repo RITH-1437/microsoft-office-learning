@@ -12,6 +12,12 @@ on:
     - cron: '17 6 * * 1' # Mondays 06:17 UTC
   workflow_dispatch:
 
+# Explicit bash = "bash --noprofile --norc -eo pipefail": without pipefail, "cmd | tee log"
+# hides a failing cmd (this masked a tsc failure in the first real run).
+defaults:
+  run:
+    shell: bash
+
 permissions:
   contents: read
 
@@ -21,9 +27,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -50,7 +56,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Tracked files must not include env files, build output or key material
         run: |
@@ -69,13 +75,17 @@ jobs:
           exit $status
 
   dependency-review:
+    # Needs the repository's Dependency graph (Settings → Code security). It is disabled on
+    # this repo today (first real run failed with "Dependency review is not supported"), so
+    # the job is opt-in: enable Dependency graph, then set repository variable
+    # ENABLE_DEPENDENCY_REVIEW=true.
     name: Dependency review (PR)
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' && vars.ENABLE_DEPENDENCY_REVIEW == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/dependency-review-action@v4
+      - uses: actions/checkout@v7
+      - uses: actions/dependency-review-action@v5
         with:
           fail-on-severity: high
           comment-summary-in-pr: never
@@ -92,8 +102,8 @@ jobs:
       actions: read
       security-events: write
     steps:
-      - uses: actions/checkout@v4
-      - uses: github/codeql-action/init@v3
+      - uses: actions/checkout@v7
+      - uses: github/codeql-action/init@v4
         with:
           languages: javascript-typescript
-      - uses: github/codeql-action/analyze@v3
+      - uses: github/codeql-action/analyze@v4

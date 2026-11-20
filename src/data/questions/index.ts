@@ -1,11 +1,13 @@
 import type { Question, Quiz } from '../../types'
 import { lessonChecks } from './lessonChecks'
 import { quizzes } from './quizzes'
+import { quickQuizQuestions } from './quick'
 
-export { lessonChecks, quizzes }
+export { lessonChecks, quizzes, quickQuizQuestions }
 
 export const allQuestions: Question[] = [
   ...lessonChecks,
+  ...quickQuizQuestions,
   ...quizzes.flatMap((quiz) => quiz.questions),
 ]
 

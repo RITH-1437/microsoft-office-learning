@@ -1,16 +1,22 @@
 import { useState } from 'react'
 import { CheckCircle2, RotateCcw, XCircle } from 'lucide-react'
 import { getQuestion } from '../data/questions'
+import RichText from './RichText'
+import { useT } from '../i18n'
+import { useLocalize } from '../i18n/content'
 
 export default function LessonCheck({ questionId }: { questionId: string }) {
-  const question = getQuestion(questionId)
+  const L = useLocalize()
+  const source = getQuestion(questionId)
+  const question = source ? L.question(source) : undefined
   const [selected, setSelected] = useState<number | null>(null)
   const [submitted, setSubmitted] = useState(false)
+  const t = useT()
 
   if (!question) {
     return (
       <div className="rounded-xl border border-amber-300/60 bg-amber-50/70 p-4 text-sm text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
-        This knowledge check is not available yet.
+        {t('check.unavailable')}
       </div>
     )
   }
@@ -19,8 +25,8 @@ export default function LessonCheck({ questionId }: { questionId: string }) {
 
   return (
     <div>
-      <p className="text-sm font-semibold leading-snug">{question.prompt}</p>
-      <div className="mt-3 grid gap-2" role="radiogroup" aria-label="Knowledge check options">
+      <p className="text-sm font-semibold leading-snug"><RichText text={question.prompt} /></p>
+      <div className="mt-3 grid gap-2" role="radiogroup" aria-label={t('check.options')}>
         {question.options.map((option, index) => {
           const isSelected = selected === index
           const showCorrect = submitted && index === question.answer
@@ -52,11 +58,11 @@ export default function LessonCheck({ questionId }: { questionId: string }) {
               >
                 {String.fromCharCode(65 + index)}
               </span>
-              <span>{option}</span>
+              <span><RichText text={option} /></span>
               {showCorrect && <CheckCircle2 size={16} className="anim-pop ml-auto shrink-0" aria-hidden="true" />}
-              {showCorrect && <span className="sr-only">(correct answer)</span>}
+              {showCorrect && <span className="sr-only">{t('check.correctAnswer')}</span>}
               {showWrong && <XCircle size={16} className="anim-pop ml-auto shrink-0" aria-hidden="true" />}
-              {showWrong && <span className="sr-only">(your answer, incorrect)</span>}
+              {showWrong && <span className="sr-only">{t('check.yourWrong')}</span>}
             </button>
           )
         })}
@@ -70,12 +76,12 @@ export default function LessonCheck({ questionId }: { questionId: string }) {
             disabled={selected === null}
             className="btn-primary disabled:cursor-not-allowed disabled:opacity-40"
           >
-            Check answer
+            {t('check.check')}
           </button>
         ) : (
           <>
             <span className={`anim-rise text-sm font-semibold ${correct ? 'text-excel-600 dark:text-excel-400' : 'text-red-600 dark:text-red-400'}`}>
-              {correct ? 'Correct' : 'Not quite'}
+              {correct ? t('check.correct') : t('check.notQuite')}
             </span>
             <button
               type="button"
@@ -86,7 +92,7 @@ export default function LessonCheck({ questionId }: { questionId: string }) {
               className="btn-ghost"
             >
               <RotateCcw size={13} />
-              Try again
+              {t('check.tryAgain')}
             </button>
           </>
         )}
@@ -94,8 +100,8 @@ export default function LessonCheck({ questionId }: { questionId: string }) {
 
       {submitted && (
         <div className="anim-rise mt-3 rounded-xl border hairline bg-white/50 p-3.5 text-xs leading-relaxed text-muted dark:bg-white/[0.03]">
-          <strong className="text-[var(--text-strong)]">Why: </strong>
-          {question.explanation}
+          <strong className="text-[var(--text-strong)]">{t('check.why')}</strong>
+          <RichText text={question.explanation} />
         </div>
       )}
     </div>

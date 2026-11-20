@@ -11,20 +11,24 @@ import {
 import OfficeAppIcon from '../components/icons/OfficeAppIcon'
 import { exercises } from '../data/exercises'
 import { useProgress } from '../store/progress'
+import { useT } from '../i18n'
+import { useLocalize } from '../i18n/content'
 
 const filters = [
-  { id: 'all', label: 'All projects' },
-  { id: 'word', label: 'Word' },
-  { id: 'excel', label: 'Excel' },
-  { id: 'admin', label: 'Admin scenarios' },
+  { id: 'all', label: 'practice.filter.all' },
+  { id: 'word', label: 'practice.filter.word' },
+  { id: 'excel', label: 'practice.filter.excel' },
+  { id: 'admin', label: 'practice.filter.admin' },
 ] as const
 
 export default function PracticePage() {
   const [filter, setFilter] = useState<(typeof filters)[number]['id']>('all')
   const [query, setQuery] = useState('')
   const completed = useProgress((state) => state.completedExercises)
+  const t = useT()
+  const L = useLocalize()
 
-  const visible = exercises.filter((exercise) => {
+  const visible = exercises.map(L.exercise).filter((exercise) => {
     const matchesFilter = filter === 'all' || exercise.pathId === filter || exercise.scenario === filter
     const matchesQuery =
       query.trim().length === 0 ||
@@ -37,27 +41,29 @@ export default function PracticePage() {
       <header className="max-w-3xl">
         <span className="section-label">
           <FlaskConical size={13} />
-          Practice projects
+          {t('practice.label')}
         </span>
-        <h1 className="mt-2 font-display text-4xl font-extrabold tracking-tight">Build something you can keep</h1>
+        <h1 className="mt-2 font-display text-4xl font-extrabold tracking-tight">{t('practice.title')}</h1>
         <p className="mt-3 text-lg text-muted">
-          Twelve realistic projects with starter files, step-by-step instructions, success criteria, and a
-          place to record completion.
+          {t('practice.lead')}
         </p>
       </header>
 
       <div className="grid gap-3 sm:grid-cols-3">
         {[
-          { icon: FileText, value: '6', label: 'Word projects' },
-          { icon: FileSpreadsheet, value: '6', label: 'Excel projects' },
-          { icon: CheckCircle2, value: `${Object.keys(completed).length}`, label: 'completed by you' },
+          { app: 'word' as const, value: '6', label: t('practice.stat.word') },
+          { app: 'excel' as const, value: '6', label: t('practice.stat.excel') },
+          { app: undefined, value: `${Object.keys(completed).length}`, label: t('practice.stat.done') },
         ].map((stat) => {
-          const Icon = stat.icon
           return (
             <div key={stat.label} className="card flex items-center gap-3 p-4">
-              <span className="grid h-10 w-10 place-items-center rounded-xl bg-excel-50 text-excel-600 dark:bg-excel-500/15 dark:text-excel-300">
-                <Icon size={18} />
-              </span>
+              {stat.app ? (
+                <OfficeAppIcon app={stat.app} size={40} />
+              ) : (
+                <span className="grid h-10 w-10 place-items-center rounded-xl bg-excel-50 text-excel-600 dark:bg-excel-500/15 dark:text-excel-300">
+                  <CheckCircle2 size={18} />
+                </span>
+              )}
               <div>
                 <div className="font-display text-xl font-bold">{stat.value}</div>
                 <div className="text-[11px] uppercase tracking-wide text-muted">{stat.label}</div>
@@ -74,13 +80,14 @@ export default function PracticePage() {
               key={item.id}
               type="button"
               onClick={() => setFilter(item.id)}
+              aria-pressed={filter === item.id}
               className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
                 filter === item.id
                   ? 'bg-word-600 text-white'
                   : 'border hairline bg-white/40 text-muted hover:text-[var(--text-strong)] dark:bg-white/5'
               }`}
             >
-              {item.label}
+              {t(item.label)}
             </button>
           ))}
         </div>
@@ -90,9 +97,9 @@ export default function PracticePage() {
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search projects"
+            placeholder={t('practice.search')}
             className="w-full rounded-xl border hairline bg-white/50 py-2 pl-9 pr-3 text-sm outline-none transition focus:border-word-400 dark:bg-white/5 sm:w-64"
-            aria-label="Search projects"
+            aria-label={t('practice.search')}
           />
         </div>
       </div>
@@ -100,8 +107,8 @@ export default function PracticePage() {
       {visible.length === 0 ? (
         <div className="card p-10 text-center">
           <Search size={28} className="mx-auto text-muted" />
-          <h2 className="mt-3 font-display text-xl font-bold">No projects match</h2>
-          <p className="mt-1 text-sm text-muted">Try a different filter or search term.</p>
+          <h2 className="mt-3 font-display text-xl font-bold">{t('practice.empty')}</h2>
+          <p className="mt-1 text-sm text-muted">{t('practice.emptyBody')}</p>
           <button
             type="button"
             onClick={() => {
@@ -110,7 +117,7 @@ export default function PracticePage() {
             }}
             className="btn-secondary mt-4"
           >
-            Clear filters
+            {t('practice.clear')}
           </button>
         </div>
       ) : (
@@ -133,33 +140,33 @@ export default function PracticePage() {
                     }`}
                   >
                     <OfficeAppIcon app={exercise.pathId} variant="glyph" size={11} />
-                    {exercise.pathId}
+                    {t(`app.${exercise.pathId}`)}
                   </span>
                   {done ? (
                     <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-excel-600 dark:text-excel-400">
-                      <CheckCircle2 size={12} /> Completed
+                      <CheckCircle2 size={12} /> {t('common.completed')}
                     </span>
                   ) : (
-                    <span className="chip">{exercise.difficulty}</span>
+                    <span className="chip">{t(`difficulty.${exercise.difficulty}`)}</span>
                   )}
                 </div>
                 <h2 className="mt-3 font-display text-lg font-bold leading-snug">{exercise.title}</h2>
                 <p className="mt-1.5 flex-1 text-sm leading-relaxed text-muted">{exercise.subtitle}</p>
                 <div className="mt-4 flex items-center gap-3 text-[11px] text-muted">
                   <span className="inline-flex items-center gap-1">
-                    <Clock size={11} /> {exercise.duration} min
+                    <Clock size={11} /> {t('common.min', { n: exercise.duration })}
                   </span>
                   <span className="inline-flex items-center gap-1">
-                    <ListChecks size={11} /> {exercise.criteria.length} criteria
+                    <ListChecks size={11} /> {t('common.criteria', { n: exercise.criteria.length })}
                   </span>
                   {exercise.starter && (
                     <span className="inline-flex items-center gap-1">
-                      <Download size={11} /> starter file
+                      <Download size={11} /> {t('common.starterFile')}
                     </span>
                   )}
                 </div>
                 <span className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-word-600 dark:text-word-300">
-                  {done ? 'Review project' : 'Open project'}
+                  {done ? t('common.reviewProject') : t('common.openProject')}
                   <ArrowRight size={13} className="transition group-hover:translate-x-0.5" />
                 </span>
               </Link>

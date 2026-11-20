@@ -40,6 +40,8 @@ Start with the **job summary** (Actions → the run → Summary): every job writ
 | --- | --- |
 | `npm audit` fails (prod deps, high/critical) | `npm audit fix` or upgrade the package; if a fix is unavailable, document the risk acceptance in the PR and the task report — do not lower the audit level silently |
 | Secrets hygiene fails | a tracked `.env*`, `dist/`, `node_modules/` or a credential pattern was found; remove it from git history if it was a real secret and **rotate the credential** |
+| "Dependency review is not supported on this repository" | Dependency graph is disabled | enable it in Settings → Code security, then set `ENABLE_DEPENDENCY_REVIEW=true` (the job is skipped until then) |
+| A step shows green although the command inside failed | missing `pipefail` with `cmd | tee log` | all workflows set `defaults.run.shell: bash`; keep it when adding workflows |
 | Dependency review fails on a fork PR or private repo | the action needs the dependency graph (free on public repos; GitHub Advanced Security on private). Either enable it or accept that this job is skipped for forks |
 | CodeQL "not enabled" | set repository variable `ENABLE_CODEQL=true` only when code scanning is available |
 

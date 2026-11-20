@@ -5,6 +5,12 @@ on:
   workflow_call:
   workflow_dispatch:
 
+# Explicit bash = "bash --noprofile --norc -eo pipefail": without pipefail, "cmd | tee log"
+# hides a failing cmd (this masked a tsc failure in the first real run).
+defaults:
+  run:
+    shell: bash
+
 permissions:
   contents: read
 
@@ -14,9 +20,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -25,9 +31,11 @@ jobs:
         run: npm ci
 
       - name: Lint (oxlint)
+        id: lint
         run: npm run lint 2>&1 | tee lint.log
 
       - name: Type-check (tsc -b, project references)
+        id: typecheck
         run: npm run typecheck 2>&1 | tee typecheck.log
 
       - name: Formatting
@@ -46,7 +54,8 @@ jobs:
             echo
             echo "| Check | Result |"
             echo "| --- | --- |"
-            echo "| Lint (oxlint) | ${{ steps.lint.outcome || 'see log' }} |"
+            echo "| Lint (oxlint) | ${{ steps.lint.outcome }} |"
+            echo "| Type-check (tsc -b) | ${{ steps.typecheck.outcome }} |"
             echo
             echo "<details><summary>oxlint output</summary>"
             echo

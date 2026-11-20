@@ -48,8 +48,24 @@ See `ci-cd-architecture.md` for the full design. Summary:
 | Production build | `npm run build` | pass; `dist/index.html` + 20 JS chunks + 1 CSS; chunk-size warning present |
 | Workflow syntax | PyYAML `safe_load` on all 6 workflows + `dependabot.yml` | all parse; triggers and jobs as designed |
 | Vercel config | `vercel.json` | valid JSON; headers/framework fields per Vercel schema |
-| GitHub execution | — | **Not executed**: nothing was pushed (the mission forbids pushing without authorization). The first real run happens when `.github/` reaches GitHub. |
+| GitHub execution | GitHub Actions (after the owner pushed commit `6af0fe5`) | **Ran for real** — see §4a. CI failed (real code error, plus a workflow bug that hid it); Security failed only on Dependency review (repository setting). Fixed in the working tree; awaiting the next push to re-run. |
 | Deployment | — | **Not executed**: no Vercel credentials exist in the repository or environment. |
+
+## 4a. First real GitHub Actions runs (2026-11-13 23:43–23:45 UTC)
+
+Read through the public GitHub REST API (`/actions/runs`, `/jobs`, check-run annotations). Job logs need admin rights, so the annotations were used as evidence.
+
+| Run | Trigger | Result | Root cause (from annotations) | Fix |
+| --- | --- | --- | --- | --- |
+| CI #43529177115 | push to `main` @ `6af0fe5` | **failure** — *Production build* → *Verify build output* | `Cannot find name 'FileText'` / `'FileSpreadsheet'` in `src/pages/PracticePage.tsx` → `tsc` failed → `dist/index.html missing`. Same bug the owner hit at runtime on `/#/practice`. | Import usage replaced with `OfficeAppIcon` (working tree; `tsc` clean). |
+| CI (same run) | | *Lint & type-check* reported **success** although `tsc` failed | **Workflow bug:** steps without an explicit `shell` run as `bash -e {0}` (no `pipefail`), so `npm run typecheck 2>&1 | tee typecheck.log` returned `tee`'s exit code 0. | Every workflow now sets `defaults.run.shell: bash` (= `bash --noprofile --norc -eo pipefail`). The build job's *Verify build output* step caught the failure anyway. |
+| Security #43529176771 | push to `main` | success | — | — |
+| Security on Dependabot PRs #1–#7 | pull_request | **failure** — *Dependency review* | "Dependency review is not supported on this repository. Please ensure that Dependency graph is enabled." | Job made opt-in (`vars.ENABLE_DEPENDENCY_REVIEW == 'true'`); enable Dependency graph first (`ci-cd-setup.md` §2). |
+| CI on Dependabot PRs | pull_request | failure | inherited the `main` build error above | resolves once the fix is on `main` |
+| Pull request, Deploy preview | pull_request | success | Deploy preview correctly **skipped** (no Vercel secrets) | — |
+| all runs | | warning | "Node.js 20 is deprecated … actions/checkout@v4, actions/setup-node@v4 …" | Bumped to `checkout@v7`, `setup-node@v7`, `upload-artifact@v7`, `dependency-review-action@v5`, `codeql-action@v4` (the versions Dependabot proposed in PRs #1–#5; refs verified via the GitHub API — `checkout`, `setup-node`, `upload-artifact`, `codeql-action` have the major tag, `dependency-review-action` resolves `v5` to its release branch and also tags `v5.0.0`). Those Dependabot PRs become redundant once this lands. |
+
+Open Dependabot PRs #6 (minor/patch group) and #7 (`@types/node` 24 → 26) are dependency decisions for the owner; they should be re-run after the fix reaches `main`.
 
 ## 5. Remaining setup steps (need a human / repository admin)
 

@@ -4,29 +4,33 @@ import { paths } from '../data/curriculum'
 import { quizzes } from '../data/questions'
 import { useProgress, quizPercent } from '../store/progress'
 import { ProgressBar } from '../components/PathCard'
+import OfficeAppIcon from '../components/icons/OfficeAppIcon'
+import { pluralKey, useT } from '../i18n'
+import { useLocalize } from '../i18n/content'
 
 export default function QuizzesPage() {
   const attempts = useProgress((state) => state.quizAttempts)
+  const t = useT()
+  const L = useLocalize()
 
   return (
     <div className="space-y-10">
       <header className="max-w-3xl">
         <span className="section-label">
           <ClipboardCheck size={13} />
-          Assessments
+          {t('quizzes.label')}
         </span>
-        <h1 className="mt-2 font-display text-4xl font-extrabold tracking-tight">Check what stuck</h1>
+        <h1 className="mt-2 font-display text-4xl font-extrabold tracking-tight">{t('quizzes.title')}</h1>
         <p className="mt-3 text-lg text-muted">
-          Eight unit checkpoints and two final assessments. Every answer includes an explanation, so a
-          wrong answer is still a learning moment.
+          {t('quizzes.lead')}
         </p>
       </header>
 
       <div className="grid gap-4 sm:grid-cols-3">
         {[
-          { icon: ListChecks, value: '10', label: 'assessments' },
-          { icon: ClipboardCheck, value: '110', label: 'total questions' },
-          { icon: Trophy, value: '70–75%', label: 'passing scores' },
+          { icon: ListChecks, value: '10', label: t('quizzes.stat.assessments') },
+          { icon: ClipboardCheck, value: '110', label: t('quizzes.stat.questions') },
+          { icon: Trophy, value: '70–75%', label: t('quizzes.stat.pass') },
         ].map((stat) => {
           const Icon = stat.icon
           return (
@@ -43,20 +47,23 @@ export default function QuizzesPage() {
         })}
       </div>
 
-      {paths.map((path) => {
-        const pathQuizzes = quizzes.filter((quiz) => quiz.pathId === path.id)
+      {paths.map(L.path).map((path) => {
+        const pathQuizzes = quizzes.filter((quiz) => quiz.pathId === path.id).map(L.quiz)
         const isWord = path.id === 'word'
         return (
           <section key={path.id}>
             <div className="flex items-end justify-between gap-4">
               <div>
-                <h2 className="font-display text-2xl font-bold">{path.title}</h2>
+                <h2 className="flex items-center gap-3 font-display text-2xl font-bold">
+                  <OfficeAppIcon app={path.id} size={32} />
+                  {path.title}
+                </h2>
                 <p className="mt-1 text-sm text-muted">
-                  {pathQuizzes.filter((quiz) => quiz.kind === 'checkpoint').length} checkpoints + 1 final
+                  {t('quizzes.checkpoints', { n: pathQuizzes.filter((quiz) => quiz.kind === 'checkpoint').length })}
                 </p>
               </div>
               <Link to={`/paths/${path.id}`} className="btn-ghost">
-                Review lessons
+                {t('quizzes.review')}
                 <ArrowRight size={14} />
               </Link>
             </div>
@@ -91,12 +98,12 @@ export default function QuizzesPage() {
                       <div className="flex flex-wrap justify-end gap-1.5">
                         {isFinal && (
                           <span className="rounded-full bg-word-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
-                            Final
+                            {t('common.final')}
                           </span>
                         )}
                         {passed && (
                           <span className="inline-flex items-center gap-1 rounded-full bg-excel-50 px-2 py-0.5 text-[10px] font-bold text-excel-700 dark:bg-excel-500/15 dark:text-excel-200">
-                            <CheckCircle2 size={10} /> Passed
+                            <CheckCircle2 size={10} /> {t('common.passed')}
                           </span>
                         )}
                       </div>
@@ -105,30 +112,30 @@ export default function QuizzesPage() {
                     <p className="mt-1 text-sm text-muted">{quiz.description}</p>
                     <div className="mt-3 flex flex-wrap items-center gap-3 text-[11px] text-muted">
                       <span className="inline-flex items-center gap-1">
-                        <ListChecks size={12} /> {quiz.questions.length} questions
+                        <ListChecks size={12} /> {t('common.questions', { n: quiz.questions.length })}
                       </span>
                       <span className="inline-flex items-center gap-1">
-                        <Clock size={12} /> about {Math.max(5, Math.round(quiz.questions.length * 1.2))} min
+                        <Clock size={12} /> {t('common.aboutMin', { n: Math.max(5, Math.round(quiz.questions.length * 1.2)) })}
                       </span>
-                      <span>{quiz.passScore}% to pass</span>
+                      <span>{t('common.toPass', { n: quiz.passScore })}</span>
                       {unit && <span className="chip">{unit.title}</span>}
                     </div>
                     {attempt ? (
                       <div className="mt-4">
                         <div className="mb-1 flex items-center justify-between text-[11px]">
                           <span className="text-muted">
-                            Best {attempt.bestScore}/{attempt.bestTotal} · {attempt.attempts}{' '}
-                            {attempt.attempts === 1 ? 'attempt' : 'attempts'}
+                            {t('common.best', { score: attempt.bestScore, total: attempt.bestTotal })} ·{' '}
+                            {t(pluralKey('common.attempts', attempt.attempts), { n: attempt.attempts })}
                           </span>
                           <span className="font-semibold">{percent}%</span>
                         </div>
                         <ProgressBar value={percent} tone={isWord ? 'word' : 'excel'} />
                       </div>
                     ) : (
-                      <div className="mt-4 text-[11px] text-muted">Not attempted yet</div>
+                      <div className="mt-4 text-[11px] text-muted">{t('quizzes.notAttempted')}</div>
                     )}
                     <span className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-word-600 dark:text-word-300">
-                      {attempt ? 'Retake assessment' : 'Start assessment'}
+                      {attempt ? t('quizzes.retake') : t('quizzes.start')}
                       <ArrowRight size={13} className="transition group-hover:translate-x-0.5" />
                     </span>
                   </Link>
@@ -140,11 +147,9 @@ export default function QuizzesPage() {
       })}
 
       <section className="card p-6">
-        <h2 className="font-display text-lg font-bold">About the lesson knowledge checks</h2>
+        <h2 className="font-display text-lg font-bold">{t('quizzes.aboutTitle')}</h2>
         <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted">
-          Every one of the 38 lessons ends with a single knowledge check. Those checks are for immediate
-          feedback and are not scored. The checkpoint and final assessments above are recorded on your
-          progress page.
+          {t('quizzes.aboutBody')}
         </p>
       </section>
     </div>

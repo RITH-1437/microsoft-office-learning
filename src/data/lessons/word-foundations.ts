@@ -62,10 +62,18 @@ export const wordFoundations: Lesson[] = [
           {
             instruction: 'Press Ctrl + S.',
             detail: 'You can also click File, then click Save.',
+            shortcut: 'Ctrl + S',
+            ui: {
+              tab: 'file',
+              target: 'file-save',
+              workspace: { kind: 'doc', lines: ['Mia Chen', '14 November 2026'] },
+              caption: 'The File tab opens the Backstage view. Save is in the list on the left.',
+            },
           },
           {
             instruction: 'Choose a place for the file.',
             detail: 'OneDrive saves in the cloud. This PC saves on your computer. Ask your workplace which place to use.',
+            ui: { tab: 'file', target: 'file-save-as', caption: 'A new file opens the Save As page so you can pick a place.' },
           },
           {
             instruction: 'In the File name box, type My First Document.',
@@ -78,6 +86,11 @@ export const wordFoundations: Lesson[] = [
           {
             instruction: 'Click Save.',
             detail: 'The title bar now shows My First Document.',
+            ui: {
+              tab: 'home',
+              workspace: { kind: 'doc', title: 'My First Document - Word', lines: ['Mia Chen', '14 November 2026'] },
+              caption: 'After saving, the file name appears in the title bar.',
+            },
           },
         ],
         result: 'Your document has a name and a place. You can close Word and open the file again from Recent.',

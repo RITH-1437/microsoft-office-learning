@@ -54,8 +54,8 @@ export interface UiReference {
 }
 
 export type WorkspaceState =
-  | { kind: 'doc'; lines: string[]; selection?: string }
-  | { kind: 'sheet'; cells: string[][]; selected?: string; formula?: string }
+  | { kind: 'doc'; title?: string; lines: string[]; selection?: string }
+  | { kind: 'sheet'; title?: string; cells: string[][]; selected?: string; formula?: string }
 
 export interface TutorialStep {
   instruction: string

@@ -1,5 +1,6 @@
 import type { Visual } from '../types'
 import { Table2 } from 'lucide-react'
+import { useT } from '../i18n'
 
 function TableVisual({ visual }: { visual: Extract<Visual, { kind: 'table' }> }) {
   return (
@@ -43,13 +44,14 @@ function TableVisual({ visual }: { visual: Extract<Visual, { kind: 'table' }> })
 }
 
 function FormulaVisual({ visual }: { visual: Extract<Visual, { kind: 'formula' }> }) {
+  const t = useT()
   return (
     <div>
       <div className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted">{visual.title}</div>
       <div className="rounded-xl border hairline bg-ink-950 p-4 text-white dark:bg-black/50">
         <code className="block overflow-x-auto whitespace-pre font-mono text-sm text-excel-300">{visual.formula}</code>
         <div className="mt-3 flex items-center gap-2 border-t border-white/10 pt-3">
-          <span className="text-[11px] uppercase tracking-wide text-ink-400">Result</span>
+          <span className="text-[11px] uppercase tracking-wide text-ink-400">{t('common.result')}</span>
           <span className="font-mono text-sm font-semibold text-white">{visual.result}</span>
         </div>
       </div>

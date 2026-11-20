@@ -12,6 +12,12 @@ on:
     types: [completed]
   workflow_dispatch:
 
+# Explicit bash = "bash --noprofile --norc -eo pipefail": without pipefail, "cmd | tee log"
+# hides a failing cmd (this masked a tsc failure in the first real run).
+defaults:
+  run:
+    shell: bash
+
 permissions:
   contents: read
 
@@ -50,13 +56,13 @@ jobs:
             echo "configured=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         if: steps.creds.outputs.configured == 'true'
         with:
           # Deploy exactly the commit CI verified.
           ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         if: steps.creds.outputs.configured == 'true'
         with:
           node-version: 22

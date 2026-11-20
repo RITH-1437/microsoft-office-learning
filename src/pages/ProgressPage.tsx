@@ -16,11 +16,16 @@ import { quizzes } from '../data/questions'
 import { useProgress, quizPercent } from '../store/progress'
 import { ProgressBar } from '../components/PathCard'
 import DashboardSummary from '../components/DashboardSummary'
-import { formatDate } from '../lib/utils'
+import OfficeAppIcon from '../components/icons/OfficeAppIcon'
+import { formatDateFor, pluralKey, useLocale, useT } from '../i18n'
+import { useLocalize } from '../i18n/content'
 
 export default function ProgressPage() {
   const { completedLessons, quizAttempts, completedExercises, resetProgress } = useProgress()
   const [confirming, setConfirming] = useState(false)
+  const t = useT()
+  const locale = useLocale()
+  const L = useLocalize()
 
   const doneLessons = allLessons.filter((lesson) => completedLessons[lesson.id])
   const overall = Math.round((doneLessons.length / allLessons.length) * 100)
@@ -37,10 +42,10 @@ export default function ProgressPage() {
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <span className="section-label">
-            <BarChart3 size={13} /> My progress
+            <BarChart3 size={13} /> {t('progress.label')}
           </span>
-          <h1 className="mt-2 font-display text-4xl font-extrabold tracking-tight">Your learning record</h1>
-          <p className="mt-2 text-muted">Stored in this browser only. Clearing site data removes it.</p>
+          <h1 className="mt-2 font-display text-4xl font-extrabold tracking-tight">{t('progress.title')}</h1>
+          <p className="mt-2 text-muted">{t('progress.lead')}</p>
         </div>
         {confirming ? (
           <div className="flex items-center gap-2">
@@ -52,16 +57,16 @@ export default function ProgressPage() {
               }}
               className="rounded-xl bg-red-600 px-3 py-2 text-sm font-semibold text-white hover:bg-red-700"
             >
-              Yes, reset everything
+              {t('progress.confirmReset')}
             </button>
             <button type="button" onClick={() => setConfirming(false)} className="btn-secondary">
-              Cancel
+              {t('common.cancel')}
             </button>
           </div>
         ) : (
           <button type="button" onClick={() => setConfirming(true)} className="btn-secondary">
             <RotateCcw size={14} />
-            Reset progress
+            {t('progress.reset')}
           </button>
         )}
       </header>
@@ -70,10 +75,10 @@ export default function ProgressPage() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[
-          { icon: CheckCircle2, value: `${doneLessons.length}/${allLessons.length}`, label: 'lessons complete' },
-          { icon: Trophy, value: `${passedQuizzes.length}/${quizzes.length}`, label: 'assessments passed' },
-          { icon: FlaskConical, value: `${doneProjects.length}/${exercises.length}`, label: 'projects complete' },
-          { icon: Clock, value: `${Math.round(totalMinutes / 60)}h`, label: 'lesson time logged' },
+          { icon: CheckCircle2, value: `${doneLessons.length}/${allLessons.length}`, label: t('progress.stat.lessons') },
+          { icon: Trophy, value: `${passedQuizzes.length}/${quizzes.length}`, label: t('progress.stat.assessments') },
+          { icon: FlaskConical, value: `${doneProjects.length}/${exercises.length}`, label: t('progress.stat.projects') },
+          { icon: Clock, value: `${Math.round(totalMinutes / 60)}h`, label: t('progress.stat.time') },
         ].map((stat) => {
           const Icon = stat.icon
           return (
@@ -93,16 +98,16 @@ export default function ProgressPage() {
       <section className="card p-5 sm:p-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="font-display text-xl font-bold">Overall completion</h2>
-            <p className="mt-1 text-sm text-muted">Across both paths.</p>
+            <h2 className="font-display text-xl font-bold">{t('progress.overall')}</h2>
+            <p className="mt-1 text-sm text-muted">{t('progress.overallLead')}</p>
           </div>
           <span className="font-display text-3xl font-bold">{overall}%</span>
         </div>
-        <ProgressBar value={overall} className="mt-3 h-2.5" label="Overall completion" />
+        <ProgressBar value={overall} className="mt-3 h-2.5" label={t('progress.overall')} />
       </section>
 
       <section>
-        <h2 className="font-display text-2xl font-bold">By path</h2>
+        <h2 className="font-display text-2xl font-bold">{t('progress.byPath')}</h2>
         <div className="mt-4 grid gap-4 lg:grid-cols-2">
           {paths.map((path) => {
             const lessons = getPathLessons(path.id)
@@ -112,18 +117,17 @@ export default function ProgressPage() {
             return (
               <div key={path.id} className="card p-5">
                 <div className="flex items-center justify-between">
-                  <Link to={`/paths/${path.id}`} className="font-display text-lg font-bold hover:text-word-600">
+                  <Link to={`/paths/${path.id}`} className="flex items-center gap-2.5 font-display text-lg font-bold hover:text-word-600">
+                    <OfficeAppIcon app={path.id} size={32} />
                     {path.title}
                   </Link>
                   <span className="text-sm font-semibold">{percent}%</span>
                 </div>
                 <ProgressBar value={percent} tone={isWord ? 'word' : 'excel'} className="mt-2" />
                 <div className="mt-3 flex items-center justify-between text-xs text-muted">
-                  <span>
-                    {done} of {lessons.length} lessons
-                  </span>
+                  <span>{t('common.ofLessons', { done, total: lessons.length })}</span>
                   <Link to={`/paths/${path.id}`} className="font-semibold text-word-600 dark:text-word-300">
-                    Open path
+                    {t('progress.openPath')}
                   </Link>
                 </div>
                 <div className="mt-4 grid grid-cols-2 gap-2">
@@ -132,10 +136,10 @@ export default function ProgressPage() {
                     return (
                       <div key={unit.id} className="rounded-lg border hairline bg-white/40 p-2 dark:bg-white/[0.03]">
                         <div className="truncate text-[10px] font-semibold uppercase tracking-wide text-muted">
-                          Unit {unit.number}
+                          {t('progress.unitN', { n: unit.number })}
                         </div>
                         <div className="mt-0.5 text-xs font-medium">
-                          {unitDone}/{unit.lessonIds.length} done
+                          {t('common.done', { done: unitDone, total: unit.lessonIds.length })}
                         </div>
                       </div>
                     )
@@ -150,19 +154,19 @@ export default function ProgressPage() {
       <div className="grid gap-6 lg:grid-cols-2">
         <section>
           <div className="flex items-center justify-between">
-            <h2 className="font-display text-xl font-bold">Assessments</h2>
+            <h2 className="font-display text-xl font-bold">{t('progress.assessments')}</h2>
             <Link to="/quizzes" className="btn-ghost">
-              All quizzes
+              {t('common.allQuizzes')}
             </Link>
           </div>
           <div className="mt-3 space-y-2">
             {attemptedQuizzes.length === 0 && (
               <div className="card p-5 text-sm text-muted">
-                No attempts yet.{' '}
+                {t('progress.noAttempts')}{' '}
                 <Link to="/quizzes" className="font-semibold text-word-600 dark:text-word-300">
-                  Take a checkpoint
+                  {t('progress.takeCheckpoint')}
                 </Link>{' '}
-                to see your scores here.
+                {t('progress.toSeeScores')}
               </div>
             )}
             {attemptedQuizzes.map((quiz) => {
@@ -185,10 +189,11 @@ export default function ProgressPage() {
                     <ClipboardCheck size={16} />
                   </span>
                   <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-semibold">{quiz.title}</div>
+                    <div className="truncate text-sm font-semibold">{L.quiz(quiz).title}</div>
                     <div className="text-[11px] text-muted">
-                      Best {attempt.bestScore}/{attempt.bestTotal} · {attempt.attempts}{' '}
-                      {attempt.attempts === 1 ? 'attempt' : 'attempts'} · {formatDate(attempt.lastAt)}
+                      {t('common.best', { score: attempt.bestScore, total: attempt.bestTotal })} ·{' '}
+                      {t(pluralKey('common.attempts', attempt.attempts), { n: attempt.attempts })} ·{' '}
+                      {formatDateFor(locale, attempt.lastAt)}
                     </div>
                   </div>
                   <span className={`text-sm font-bold ${passed ? 'text-excel-600 dark:text-excel-400' : 'text-muted'}`}>
@@ -202,19 +207,19 @@ export default function ProgressPage() {
 
         <section>
           <div className="flex items-center justify-between">
-            <h2 className="font-display text-xl font-bold">Completed projects</h2>
+            <h2 className="font-display text-xl font-bold">{t('progress.completedProjects')}</h2>
             <Link to="/practice" className="btn-ghost">
-              All projects
+              {t('common.allProjects')}
             </Link>
           </div>
           <div className="mt-3 space-y-2">
             {doneProjects.length === 0 && (
               <div className="card p-5 text-sm text-muted">
-                No projects completed yet.{' '}
+                {t('progress.noProjects')}{' '}
                 <Link to="/practice" className="font-semibold text-word-600 dark:text-word-300">
-                  Browse projects
+                  {t('common.browseProjects')}
                 </Link>{' '}
-                and mark one complete when you finish it.
+                {t('progress.markOne')}
               </div>
             )}
             {doneProjects.map((project) => (
@@ -227,9 +232,12 @@ export default function ProgressPage() {
                   <CheckCircle2 size={16} />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-semibold">{project.title}</div>
+                  <div className="truncate text-sm font-semibold">{L.exercise(project).title}</div>
                   <div className="text-[11px] text-muted">
-                    {project.pathId} · finished {formatDate(completedExercises[project.id])}
+                    {t('progress.finished', {
+                      app: t(`app.${project.pathId}`),
+                      date: formatDateFor(locale, completedExercises[project.id]),
+                    })}
                   </div>
                 </div>
               </Link>
@@ -240,8 +248,10 @@ export default function ProgressPage() {
 
       <section>
         <div className="flex items-center justify-between">
-          <h2 className="font-display text-xl font-bold">Lesson checklist</h2>
-          <span className="text-xs text-muted">{doneLessons.length} of {allLessons.length} complete</span>
+          <h2 className="font-display text-xl font-bold">{t('progress.checklist')}</h2>
+          <span className="text-xs text-muted">
+            {t('progress.checklistCount', { done: doneLessons.length, total: allLessons.length })}
+          </span>
         </div>
         <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {allLessons.map((lesson) => {
@@ -261,7 +271,7 @@ export default function ProgressPage() {
                 ) : (
                   <Circle size={14} className="shrink-0 text-muted opacity-50" />
                 )}
-                <span className={`truncate ${done ? 'text-muted' : ''}`}>{lesson.title}</span>
+                <span className={`truncate ${done ? 'text-muted' : ''}`}>{L.lesson(lesson).title}</span>
                 <span className="ml-auto shrink-0 text-[10px] uppercase text-muted">{lesson.id}</span>
               </Link>
             )

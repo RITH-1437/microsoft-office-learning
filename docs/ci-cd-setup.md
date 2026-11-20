@@ -20,8 +20,9 @@ Node 22 is the reference version (`actions/setup-node` uses `node-version: 22`).
    Optionally require branches to be up to date and at least one approving review. *Nothing is auto-merged or auto-approved by the workflows.*
 2. **Environments** — create `preview` and `production` (Settings → Environments). On `production`, add **Required reviewers** if you want a human approval gate before every production deploy; the workflow waits for it.
 3. **Security features** — enable Dependabot alerts + security updates, **secret scanning** and **push protection** (Settings → Code security). Public repos get these free; the hygiene job in `security.yml` is only a basic safety net, not a replacement.
-4. **CodeQL (optional)** — set the repository variable `ENABLE_CODEQL=true` (Settings → Secrets and variables → Actions → Variables). Requires code scanning to be available (free for public repositories).
-5. **Dependabot** — `.github/dependabot.yml` is picked up automatically; it opens weekly PRs that run through the full pipeline.
+4. **Dependency review (recommended)** — enable **Dependency graph** (Settings → Code security), then set repository variable `ENABLE_DEPENDENCY_REVIEW=true`. Until then the job is skipped (it failed on the first real run because the graph was disabled).
+5. **CodeQL (optional)** — set the repository variable `ENABLE_CODEQL=true` (Settings → Secrets and variables → Actions → Variables). Requires code scanning to be available (free for public repositories).
+6. **Dependabot** — `.github/dependabot.yml` is picked up automatically; it opens weekly PRs that run through the full pipeline.
 
 ## 3. Deployment to Vercel
 

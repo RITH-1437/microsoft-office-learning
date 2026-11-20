@@ -9,6 +9,9 @@ import {
   Info,
   RotateCcw } from 'lucide-react'
 import OfficeAppIcon from '../components/icons/OfficeAppIcon'
+import { useT, type MessageKey } from '../i18n'
+
+const CHALLENGES: MessageKey[] = ['lab.excel.c1', 'lab.excel.c2', 'lab.excel.c3', 'lab.excel.c4', 'lab.excel.c5']
 import { cellAddress, displayValue, evaluateWorkbook } from '../lib/formula'
 
 const COLS = 10
@@ -50,13 +53,13 @@ const sampleCells: Record<string, string> = {
   B16: '=IF(B11>30,"Review","OK")',
 }
 
-const examples = [
-  { formula: '=SUM(B4:B6)', description: 'Add a range' },
-  { formula: '=AVERAGE(C4:C6)', description: 'Average a range' },
-  { formula: '=COUNTIF(D4:D6,">10")', description: 'Count matching cells' },
-  { formula: '=IF(D7>20,"High","Low")', description: 'Test a condition' },
-  { formula: '=ROUND(D7*0.2,2)', description: 'Round a calculation' },
-  { formula: '=VLOOKUP("Pens",A4:D6,4,FALSE)', description: 'Look up a value' },
+const examples: { formula: string; description: MessageKey }[] = [
+  { formula: '=SUM(B4:B6)', description: 'lab.excel.f.sum' },
+  { formula: '=AVERAGE(C4:C6)', description: 'lab.excel.f.average' },
+  { formula: '=COUNTIF(D4:D6,">10")', description: 'lab.excel.f.countif' },
+  { formula: '=IF(D7>20,"High","Low")', description: 'lab.excel.f.if' },
+  { formula: '=ROUND(D7*0.2,2)', description: 'lab.excel.f.round' },
+  { formula: '=VLOOKUP("Pens",A4:D6,4,FALSE)', description: 'lab.excel.f.vlookup' },
 ]
 
 function downloadCsv(cells: Record<string, string>) {
@@ -81,6 +84,7 @@ function downloadCsv(cells: Record<string, string>) {
 }
 
 export default function ExcelLabPage() {
+  const t = useT()
   const [cells, setCells] = useState<Record<string, string>>(sampleCells)
   const [selected, setSelected] = useState('A1')
   const [editing, setEditing] = useState<string | null>(null)
@@ -117,37 +121,36 @@ export default function ExcelLabPage() {
 
   return (
     <div className="space-y-6">
-      <nav className="flex items-center gap-1.5 text-xs text-muted" aria-label="Breadcrumb">
+      <nav className="flex items-center gap-1.5 text-xs text-muted" aria-label={t('lesson.breadcrumb')}>
         <Link to="/labs" className="hover:text-[var(--text-strong)]">
-          Labs
+          {t('nav.labs')}
         </Link>
         <span>/</span>
-        <span className="text-[var(--text-strong)]">Excel formula lab</span>
+        <span className="text-[var(--text-strong)]">{t('labs.excel.title')}</span>
       </nav>
 
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <span className="section-label">
-            <FlaskConical size={13} /> Interactive lab
+            <FlaskConical size={13} /> {t('lab.interactive')}
           </span>
-          <h1 className="mt-2 font-display text-3xl font-extrabold tracking-tight">Excel formula lab</h1>
+          <h1 className="mt-2 font-display text-3xl font-extrabold tracking-tight">{t('labs.excel.title')}</h1>
           <p className="mt-2 max-w-2xl text-sm text-muted">
-            Edit cells, type formulas, and see results immediately. This is a simplified simulation, not
-            Microsoft Excel — but the formula logic is real.
+            {t('lab.excel.lead')}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <button type="button" onClick={() => setCells(sampleCells)} className="btn-secondary">
             <RotateCcw size={14} />
-            Reset sample
+            {t('lab.excel.reset')}
           </button>
           <button type="button" onClick={() => setCells({})} className="btn-secondary">
             <Eraser size={14} />
-            Clear
+            {t('lab.excel.clear')}
           </button>
           <button type="button" onClick={() => downloadCsv(cells)} className="btn-primary">
             <Download size={14} />
-            Export CSV
+            {t('lab.excel.export')}
           </button>
         </div>
       </header>
@@ -158,7 +161,7 @@ export default function ExcelLabPage() {
             <div className="flex items-center gap-2 border-b hairline bg-ink-50/70 px-3 py-2 dark:bg-white/[0.04]">
               <OfficeAppIcon app="excel" size={24} />
               <span className="text-xs font-semibold">Budget-lab.xlsx</span>
-              <span className="ml-auto text-[10px] text-muted">Simulation · not saved</span>
+              <span className="ml-auto text-[10px] text-muted">{t('lab.simulation')}</span>
             </div>
 
             <div className="flex items-stretch border-b hairline">
@@ -177,9 +180,9 @@ export default function ExcelLabPage() {
                       event.currentTarget.blur()
                     }
                   }}
-                  placeholder="Enter a value or formula, for example =SUM(B4:B6)"
+                  placeholder={t('lab.excel.placeholder')}
                   className="min-w-0 flex-1 bg-transparent font-mono text-xs outline-none placeholder:font-sans placeholder:text-muted"
-                  aria-label={`Formula bar for ${selected}`}
+                  aria-label={t('lab.excel.formulaBar', { cell: selected })}
                 />
               </div>
             </div>
@@ -234,7 +237,7 @@ export default function ExcelLabPage() {
                                   if (row < ROWS) focusCell(cellAddress(colIndex + 1, row + 1))
                                 }
                               }}
-                              aria-label={`Cell ${address}`}
+                              aria-label={t('lab.excel.cell', { cell: address })}
                               className={`min-w-0 border-b border-r hairline px-2 py-1.5 font-mono text-[11px] outline-none transition ${
                                 isSelected
                                   ? 'relative z-10 bg-excel-50 ring-2 ring-inset ring-excel-500 dark:bg-excel-500/10 dark:ring-excel-400'
@@ -257,8 +260,8 @@ export default function ExcelLabPage() {
                 <CheckCircle2 size={12} className="text-excel-500" />
                 {selected} = <span className="font-mono font-semibold text-[var(--text-strong)]">{selectedValue || 'blank'}</span>
               </span>
-              {selectedIsFormula && <span className="chip">formula</span>}
-              <span className="ml-auto hidden sm:inline">Enter moves down · Click a cell to edit</span>
+              {selectedIsFormula && <span className="chip">{t('lab.excel.formulaChip')}</span>}
+              <span className="ml-auto hidden sm:inline">{t('lab.excel.hint')}</span>
             </div>
           </div>
 
@@ -273,36 +276,34 @@ export default function ExcelLabPage() {
 
         <aside className="space-y-4">
           <div className="card p-5">
-            <h2 className="text-sm font-bold">Try these formulas</h2>
-            <p className="mt-1 text-xs text-muted">Click a cell, then copy a formula into the formula bar.</p>
+            <h2 className="text-sm font-bold">{t('lab.excel.try')}</h2>
+            <p className="mt-1 text-xs text-muted">{t('lab.excel.tryLead')}</p>
             <div className="mt-3 space-y-2">
               {examples.map((example) => (
                 <div key={example.formula} className="rounded-lg border hairline bg-white/50 p-2.5 dark:bg-white/5">
                   <code className="block break-all font-mono text-[11px] text-excel-700 dark:text-excel-300">
                     {example.formula}
                   </code>
-                  <div className="mt-0.5 text-[10px] text-muted">{example.description}</div>
+                  <div className="mt-0.5 text-[10px] text-muted">{t(example.description)}</div>
                 </div>
               ))}
             </div>
           </div>
 
           <div className="card p-5">
-            <h2 className="text-sm font-bold">Mini challenges</h2>
+            <h2 className="text-sm font-bold">{t('lab.excel.challenges')}</h2>
             <ol className="mt-2 space-y-2 text-xs text-muted">
-              <li>1. In C7, calculate the average price with =AVERAGE(C4:C6).</li>
-              <li>2. In C13, count text items with =COUNTA(A4:A6).</li>
-              <li>3. In C14, count totals over 10 with =COUNTIF(D4:D6,"&gt;10").</li>
-              <li>4. Change B9 to 0.15 and watch the grand total update.</li>
-              <li>5. Create a lookup: =VLOOKUP("Pens",A4:D6,4,FALSE).</li>
+              {CHALLENGES.map((key) => (
+                <li key={key}>{t(key)}</li>
+              ))}
             </ol>
           </div>
 
           <Link to="/lesson/e3-1" className="card lift flex items-center gap-3 p-4">
             <ArrowLeft size={15} className="text-muted" />
             <div>
-              <div className="text-sm font-semibold">Review formulas</div>
-              <div className="text-[11px] text-muted">Lesson e3-1: Your first formula</div>
+              <div className="text-sm font-semibold">{t('lab.excel.review')}</div>
+              <div className="text-[11px] text-muted">{t('lab.excel.reviewLesson')}</div>
             </div>
           </Link>
         </aside>

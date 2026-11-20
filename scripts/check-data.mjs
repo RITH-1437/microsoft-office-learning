@@ -4,7 +4,8 @@
 // resolves, that answer keys are in range, and that required lesson parts are present.
 // Runs on Node ≥ 22.18 with built-in type stripping — no build step, no extra packages.
 //
-//   npm run check:data        (exit code 1 on any problem)
+//   npm run check:data              (exit code 1 on any problem)
+//   npm run check:data -- --stats   (also print per-lesson readability stats)
 import { spawnSync } from 'node:child_process'
 import path from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
@@ -19,7 +20,7 @@ if (!process.env.CHECK_DATA_CHILD) {
   }
   const result = spawnSync(
     process.execPath,
-    ['--no-warnings', '--import', pathToFileURL(path.join(here, 'register-ts.mjs')).href, fileURLToPath(import.meta.url)],
+    ['--no-warnings', '--import', pathToFileURL(path.join(here, 'register-ts.mjs')).href, fileURLToPath(import.meta.url), ...process.argv.slice(2)],
     { stdio: 'inherit', env: { ...process.env, CHECK_DATA_CHILD: '1' } },
   )
   process.exit(result.status ?? 1)
@@ -28,9 +29,12 @@ if (!process.env.CHECK_DATA_CHILD) {
 const { paths, allLessons, allUnits } = await import('../src/data/curriculum.ts')
 const { lessonChecks, quizzes, allQuestions } = await import('../src/data/questions/index.ts')
 const { exercises } = await import('../src/data/exercises.ts')
+const { OFFICE_UI, findRibbonTarget } = await import('../src/data/officeUi.ts')
 
 const errors = []
 const warnings = []
+let stepsTotal = 0
+let stepsWithUi = 0
 const fail = (message) => errors.push(message)
 const warn = (message) => warnings.push(message)
 
@@ -49,6 +53,11 @@ const lessonIds = uniqueIds(allLessons, 'lessons')
 const questionIds = uniqueIds(allQuestions, 'questions')
 uniqueIds(quizzes, 'quizzes')
 uniqueIds(exercises, 'exercises')
+
+const words = (...parts) => parts.flat(Infinity).filter(Boolean).join(' ').replace(/[*`]/g, '').split(/\s+/).filter(Boolean).length
+const showStats = process.argv.includes('--stats')
+const stats = []
+const answerPositions = [0, 0, 0, 0]
 
 const nonEmpty = (value) => (Array.isArray(value) ? value.length > 0 : typeof value === 'string' && value.trim().length > 0)
 
@@ -100,7 +109,20 @@ for (const lesson of allLessons) {
     if (!t.steps?.length) fail(`${where}: tutorial "${t.title}" has no steps`)
     if (!nonEmpty(t.result)) fail(`${where}: tutorial "${t.title}" has no result`)
     for (const step of t.steps ?? []) {
+      stepsTotal += 1
       if (!nonEmpty(step.instruction)) fail(`${where}: tutorial "${t.title}" has an empty step`)
+      if (step.ui) {
+        stepsWithUi += 1
+        const app = step.ui.app ?? lesson.pathId
+        const model = OFFICE_UI[app]
+        if (!model) fail(`${where}: tutorial "${t.title}" step uses unknown app "${app}"`)
+        else {
+          if (step.ui.tab && !model.tabs.some((tab) => tab.id === step.ui.tab)) fail(`${where}: tutorial "${t.title}" step references unknown ${app} tab "${step.ui.tab}"`)
+          if (step.ui.target && !findRibbonTarget(app, step.ui.target, step.ui.tab)) fail(`${where}: tutorial "${t.title}" step references unknown ${app} button "${step.ui.target}"${step.ui.tab ? ` on tab "${step.ui.tab}"` : ''}`)
+        }
+        const ws = step.ui.workspace
+        if (ws && ws.kind === 'sheet' && ws.selected && !/^[A-Z]\d+$/.test(ws.selected)) fail(`${where}: tutorial "${t.title}" step has invalid selected cell "${ws.selected}"`)
+      }
     }
   }
   for (const [name, block] of [['guided', lesson.guided], ['independent', lesson.independent]]) {
@@ -109,8 +131,33 @@ for (const lesson of allLessons) {
     if (!block.expected?.length) fail(`${where}: ${name} practice has no expected outcomes`)
   }
   if (!lesson.example?.scenario || !lesson.example?.takeaway) fail(`${where}: example incomplete`)
-  const words = [lesson.why, ...lesson.explain].join(' ').split(/\s+/).filter(Boolean).length
-  if (words > 320) warn(`${where}: explanation is ${words} words (target ≤ 250 for beginners)`)
+  // Readability budget (lesson-writing brief): short explanation, one reason, short takeaway.
+  const explainWords = words(lesson.explain)
+  const reading = words(
+    lesson.objectives, lesson.explain, lesson.why,
+    (lesson.terms ?? []).map((t) => [t.term, t.definition]),
+    (lesson.tutorials ?? []).map((t) => [t.title, t.intro, t.result, t.steps.map((st) => [st.instruction, st.detail])]),
+    lesson.example?.scenario, lesson.example?.takeaway, lesson.summary,
+  )
+  if (lesson.explain.length > 4) warn(`${where}: explain has ${lesson.explain.length} entries (simple explanation = 2–4 short sentences)`)
+  if (explainWords > 90) warn(`${where}: simple explanation is ${explainWords} words (target ≤ 90)`)
+  if (words(lesson.why) > 45) warn(`${where}: "why it matters" is ${words(lesson.why)} words (target ≤ 45, one practical reason)`)
+  if (lesson.summary.length > 2) warn(`${where}: key takeaway has ${lesson.summary.length} items (target 1–2)`)
+  if (reading > 380) warn(`${where}: lesson reading length is ${reading} words (target 100–250; more only when the topic needs it)`)
+
+  // Quick quiz: knowledge check + 1–2 extra questions tagged for this lesson.
+  const quick = lesson.quickQuiz ?? []
+  if (quick.length < 1) warn(`${where}: no quick-quiz questions (target 2 in addition to the knowledge check)`)
+  if (quick.length > 3) warn(`${where}: ${quick.length} quick-quiz questions (target 2)`)
+  for (const id of quick) {
+    const q = allQuestions.find((candidate) => candidate.id === id)
+    if (!q) continue // reported by the reference check
+    if (q.lessonId !== lesson.id) fail(`${where}: quick-quiz question "${id}" is tagged for lesson "${q.lessonId ?? 'none'}"`)
+    if (id === lesson.knowledgeCheck) fail(`${where}: quick-quiz repeats the knowledge check "${id}"`)
+  }
+  const tutorialSteps = (lesson.tutorials ?? []).reduce((n, t) => n + t.steps.length, 0)
+  const uiSteps = (lesson.tutorials ?? []).reduce((n, t) => n + t.steps.filter((st) => st.ui).length, 0)
+  stats.push({ id: lesson.id, reading, explainWords, tutorials: lesson.tutorials.length, steps: tutorialSteps, uiSteps, quiz: 1 + quick.length })
 }
 
 // Questions → answer keys
@@ -120,6 +167,7 @@ for (const q of allQuestions) {
   if (q.type === 'mcq' && q.options.length !== 4) warn(`${where}: multiple-choice question has ${q.options.length} options (standard is 4)`)
   if (q.type === 'tf' && q.options.length !== 2) fail(`${where}: true/false question must have exactly 2 options`)
   if (!Number.isInteger(q.answer) || q.answer < 0 || q.answer >= q.options.length) fail(`${where}: answer index ${q.answer} out of range`)
+  else if (q.type === 'mcq' && q.options.length === 4) answerPositions[q.answer] += 1
   if (new Set(q.options.map((o) => o.trim().toLowerCase())).size !== q.options.length) fail(`${where}: duplicate options`)
   if (!nonEmpty(q.explanation)) fail(`${where}: explanation missing`)
   if (!nonEmpty(q.prompt)) fail(`${where}: prompt missing`)
@@ -162,8 +210,16 @@ const summary = [
   `quizzes: ${quizzes.length} (${quizzes.reduce((n, q) => n + q.questions.length, 0)} questions)`,
   `questions total: ${allQuestions.length}`,
   `exercises: ${exercises.length}`,
+  `tutorial steps: ${stepsTotal} (${stepsWithUi} with interface references)`,
 ]
 console.log('Curriculum data integrity')
+if (showStats) {
+  console.log('\n  lesson  reading  explain  tutorials  steps  ui-steps  quiz')
+  for (const r of stats) console.log(`  ${r.id.padEnd(6)}  ${String(r.reading).padStart(7)}  ${String(r.explainWords).padStart(7)}  ${String(r.tutorials).padStart(9)}  ${String(r.steps).padStart(5)}  ${String(r.uiSteps).padStart(8)}  ${String(r.quiz).padStart(4)}`)
+  const avg = (key) => Math.round(stats.reduce((n, r) => n + r[key], 0) / stats.length)
+  console.log(`  average reading ${avg('reading')} words · explanation ${avg('explainWords')} words`)
+  console.log(`  4-option answer positions A/B/C/D: ${answerPositions.join(' / ')}\n`)
+}
 for (const line of summary) console.log('  ' + line)
 for (const w of warnings) console.log('  warning: ' + w)
 if (errors.length) {

@@ -16,38 +16,43 @@ import { exercisesForPath } from '../data/exercises'
 import { getQuiz } from '../data/questions'
 import { useProgress } from '../store/progress'
 import { ProgressBar } from '../components/PathCard'
-import { formatMinutes } from '../lib/utils'
+import ContentLanguageNote from '../components/ContentLanguageNote'
+import { formatMinutesFor, useT } from '../i18n'
+import { useLocalize } from '../i18n/content'
 
 export default function PathDetailPage() {
   const { pathId } = useParams()
-  const path = getPath(pathId ?? '')
+  const L = useLocalize()
+  const sourcePath = getPath(pathId ?? '')
+  const path = sourcePath ? L.path(sourcePath) : undefined
   const completed = useProgress((state) => state.completedLessons)
+  const t = useT()
 
   if (!path) {
     return (
       <div className="mx-auto max-w-xl py-20 text-center">
-        <h1 className="font-display text-3xl font-bold">Path not found</h1>
-        <p className="mt-2 text-muted">That learning path does not exist.</p>
+        <h1 className="font-display text-3xl font-bold">{t('pathDetail.notFound')}</h1>
+        <p className="mt-2 text-muted">{t('pathDetail.notFoundBody')}</p>
         <Link to="/paths" className="btn-primary mt-6">
           <ArrowLeft size={16} />
-          Back to paths
+          {t('common.backToPaths')}
         </Link>
       </div>
     )
   }
 
-  const lessons = getPathLessons(path.id)
+  const lessons = getPathLessons(path.id).map(L.lesson)
   const done = lessons.filter((lesson) => completed[lesson.id]).length
   const percent = Math.round((done / lessons.length) * 100)
   const isWord = path.id === 'word'
-  const projects = exercisesForPath(path.id)
+  const projects = exercisesForPath(path.id).map(L.exercise)
   const nextLesson = lessons.find((lesson) => !completed[lesson.id]) ?? lessons[0]
 
   return (
     <div className="space-y-10">
-      <nav className="flex items-center gap-1.5 text-xs text-muted" aria-label="Breadcrumb">
+      <nav className="flex items-center gap-1.5 text-xs text-muted" aria-label={t('lesson.breadcrumb')}>
         <Link to="/paths" className="hover:text-[var(--text-strong)]">
-          Paths
+          {t('nav.paths')}
         </Link>
         <ChevronRight size={12} />
         <span className="text-[var(--text-strong)]">{path.title}</span>
@@ -70,10 +75,14 @@ export default function PathDetailPage() {
               }`}
             >
               <OfficeAppIcon app={path.id} variant="glyph" size={13} />
-              {lessons.length} lessons · {path.units.length} units
+              {t('pathDetail.counts', { lessons: lessons.length, units: path.units.length })}
             </span>
-            <h1 className="mt-4 font-display text-4xl font-extrabold tracking-tight">{path.title}</h1>
+            <div className="mt-4 flex items-center gap-4">
+              <OfficeAppIcon app={path.id} size={56} float />
+              <h1 className="font-display text-4xl font-extrabold tracking-tight">{path.title}</h1>
+            </div>
             <p className="mt-3 text-muted">{path.description}</p>
+            <ContentLanguageNote className="mt-4" />
             <div className="mt-5 flex flex-wrap gap-2">
               {path.outcomes.map((outcome) => (
                 <span key={outcome} className="chip">
@@ -86,16 +95,14 @@ export default function PathDetailPage() {
           <div className="w-full max-w-sm shrink-0">
             <div className="rounded-2xl border hairline bg-white/60 p-4 dark:bg-white/5">
               <div className="flex items-center justify-between text-sm">
-                <span className="font-semibold">Your progress</span>
+                <span className="font-semibold">{t('pathDetail.yourProgress')}</span>
                 <span className="font-display text-2xl font-bold">{percent}%</span>
               </div>
               <ProgressBar value={percent} tone={isWord ? 'word' : 'excel'} className="mt-2" />
               <div className="mt-2 flex items-center justify-between text-[11px] text-muted">
-                <span>
-                  {done} of {lessons.length} lessons
-                </span>
+                <span>{t('common.ofLessons', { done, total: lessons.length })}</span>
                 <span className="inline-flex items-center gap-1">
-                  <Clock size={11} /> {formatMinutes(pathMinutes(path.id))}
+                  <Clock size={11} /> {formatMinutesFor(t, pathMinutes(path.id))}
                 </span>
               </div>
               <Link
@@ -105,7 +112,7 @@ export default function PathDetailPage() {
                 }`}
               >
                 <Play size={15} />
-                {done > 0 ? 'Continue path' : 'Start first lesson'}
+                {done > 0 ? t('pathCard.continue') : t('pathDetail.startFirst')}
               </Link>
             </div>
           </div>
@@ -117,21 +124,22 @@ export default function PathDetailPage() {
           <div>
             <span className="section-label">
               <Target size={13} />
-              Curriculum
+              {t('pathDetail.curriculum')}
             </span>
-            <h2 className="mt-2 font-display text-2xl font-bold">Units and lessons</h2>
+            <h2 className="mt-2 font-display text-2xl font-bold">{t('pathDetail.units')}</h2>
           </div>
           <Link to="/quizzes" className="btn-ghost">
             <ClipboardCheck size={14} />
-            Assessments
+            {t('pathDetail.assessments')}
           </Link>
         </div>
 
         <div className="mt-5 space-y-5">
           {path.units.map((unit) => {
-            const unitLessons = getUnitLessons(unit)
+            const unitLessons = getUnitLessons(unit).map(L.lesson)
             const unitDone = unitLessons.filter((lesson) => completed[lesson.id]).length
-            const quiz = getQuiz(unit.quizId)
+            const sourceQuiz = getQuiz(unit.quizId)
+            const quiz = sourceQuiz ? L.quiz(sourceQuiz) : undefined
             return (
               <section key={unit.id} className="card overflow-hidden">
                 <div className="flex flex-col gap-3 border-b hairline px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
@@ -151,7 +159,7 @@ export default function PathDetailPage() {
                     </div>
                   </div>
                   <span className="chip shrink-0 self-start sm:self-auto">
-                    {unitDone}/{unitLessons.length} complete
+                    {t('common.complete', { done: unitDone, total: unitLessons.length })}
                   </span>
                 </div>
 
@@ -179,9 +187,9 @@ export default function PathDetailPage() {
                             <div className="truncate text-xs text-muted">{lesson.subtitle}</div>
                           </div>
                           <span className="hidden shrink-0 items-center gap-3 text-[11px] text-muted sm:flex">
-                            <span>{lesson.difficulty}</span>
+                            <span>{t(`difficulty.${lesson.difficulty}`)}</span>
                             <span className="inline-flex items-center gap-1">
-                              <Clock size={11} /> {lesson.duration} min
+                              <Clock size={11} /> {t('common.min', { n: lesson.duration })}
                             </span>
                           </span>
                           <ChevronRight size={16} className="shrink-0 text-muted transition group-hover:translate-x-0.5" />
@@ -200,7 +208,7 @@ export default function PathDetailPage() {
                     <div className="min-w-0 flex-1">
                       <div className="text-sm font-semibold">{quiz.title}</div>
                       <div className="text-xs text-muted">
-                        {quiz.questions.length} questions · {quiz.passScore}% to pass
+                        {t('pathDetail.quizMeta', { n: quiz.questions.length, p: quiz.passScore })}
                       </div>
                     </div>
                     <ArrowRight size={15} className="shrink-0 text-muted" />
@@ -217,12 +225,12 @@ export default function PathDetailPage() {
           <div>
             <span className="section-label">
               <FlaskConical size={13} />
-              Projects
+              {t('pathDetail.projects')}
             </span>
-            <h2 className="mt-2 font-display text-2xl font-bold">Practice with this path</h2>
+            <h2 className="mt-2 font-display text-2xl font-bold">{t('pathDetail.practiceTitle')}</h2>
           </div>
           <Link to="/practice" className="btn-ghost">
-            All projects
+            {t('common.allProjects')}
             <ArrowRight size={14} />
           </Link>
         </div>
@@ -234,13 +242,13 @@ export default function PathDetailPage() {
               className="card group lift p-5"
             >
               <div className="flex items-center justify-between">
-                <span className="chip">{project.difficulty}</span>
-                <span className="text-[11px] text-muted">{project.duration} min</span>
+                <span className="chip">{t(`difficulty.${project.difficulty}`)}</span>
+                <span className="text-[11px] text-muted">{t('common.min', { n: project.duration })}</span>
               </div>
               <h3 className="mt-3 text-sm font-semibold leading-snug">{project.title}</h3>
               <p className="mt-1.5 line-clamp-2 text-xs text-muted">{project.subtitle}</p>
               <span className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-word-600 dark:text-word-300">
-                Start project
+                {t('common.startProject')}
                 <ArrowRight size={12} className="transition group-hover:translate-x-0.5" />
               </span>
             </Link>
@@ -250,11 +258,11 @@ export default function PathDetailPage() {
 
       <div className="flex flex-col items-center justify-between gap-3 rounded-2xl border hairline bg-white/50 p-5 dark:bg-white/5 sm:flex-row">
         <div className="text-sm text-muted">
-          Finished a lesson? Mark it complete at the bottom of the lesson page to update your progress.
+          {t('pathDetail.finishedHint')}
         </div>
         <Link to={`/lesson/${nextLesson.id}`} className="btn-primary shrink-0">
           <Play size={15} />
-          {done > 0 ? 'Resume path' : 'Begin now'}
+          {done > 0 ? t('pathDetail.resume') : t('pathDetail.begin')}
         </Link>
       </div>
     </div>

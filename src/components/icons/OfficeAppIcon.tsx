@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react'
 import { EXCEL_LOGO_PATH, OFFICE_LOGO_VIEWBOX, WORD_LOGO_PATH } from './officeLogoPaths'
+export { OFFICE_APP_NAME } from './officeLogoPaths'
 
 export type OfficeApp = 'word' | 'excel'
 export type OfficeIconVariant = 'tile' | 'glyph'
@@ -19,11 +20,6 @@ export interface OfficeAppIconProps {
   float?: boolean
   className?: string
   style?: CSSProperties
-}
-
-export const OFFICE_APP_NAME: Record<OfficeApp, string> = {
-  word: 'Microsoft Word',
-  excel: 'Microsoft Excel',
 }
 
 const PATHS: Record<OfficeApp, string> = { word: WORD_LOGO_PATH, excel: EXCEL_LOGO_PATH }

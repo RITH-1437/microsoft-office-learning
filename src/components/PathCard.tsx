@@ -4,7 +4,8 @@ import { ArrowRight, BookOpen, Clock } from 'lucide-react'
 import type { LearningPath } from '../types'
 import { getPathLessons, pathMinutes } from '../data/curriculum'
 import { useProgress } from '../store/progress'
-import { formatMinutes } from '../lib/utils'
+import { formatMinutesFor, useT } from '../i18n'
+import { useLocalize } from '../i18n/content'
 import TiltCard from './motion/TiltCard'
 import OfficeAppIcon from './icons/OfficeAppIcon'
 
@@ -21,6 +22,7 @@ export function ProgressBar({
 }) {
   const color = tone === 'excel' ? 'bg-excel-500' : 'bg-word-500'
   const clamped = Math.min(100, Math.max(0, value))
+  const t = useT()
   // Fill grows from 0 on mount (transform-free width transition on a 6px bar).
   const [ready, setReady] = useState(false)
   useEffect(() => {
@@ -30,7 +32,7 @@ export function ProgressBar({
   return (
     <div
       role="progressbar"
-      aria-label={label ?? 'Progress'}
+      aria-label={label ?? t('common.progress')}
       aria-valuemin={0}
       aria-valuemax={100}
       aria-valuenow={clamped}
@@ -44,13 +46,16 @@ export function ProgressBar({
   )
 }
 
-export default function PathCard({ path }: { path: LearningPath }) {
+export default function PathCard({ path: sourcePath }: { path: LearningPath }) {
+  const L = useLocalize()
+  const path = L.path(sourcePath)
   const completed = useProgress((state) => state.completedLessons)
   const lessons = getPathLessons(path.id)
   const done = lessons.filter((lesson) => completed[lesson.id]).length
   const percent = lessons.length ? Math.round((done / lessons.length) * 100) : 0
   const isWord = path.id === 'word'
   const next = lessons.find((lesson) => !completed[lesson.id]) ?? lessons[0]
+  const t = useT()
 
   return (
     <TiltCard className="h-full">
@@ -75,7 +80,7 @@ export default function PathCard({ path }: { path: LearningPath }) {
               : 'bg-excel-50 text-excel-700 dark:bg-excel-500/15 dark:text-excel-200'
           }`}
         >
-          {lessons.length} lessons
+          {t('common.lessons', { n: lessons.length })}
         </span>
       </div>
 
@@ -85,15 +90,15 @@ export default function PathCard({ path }: { path: LearningPath }) {
       <div className="mt-5 flex items-center gap-4 text-xs text-muted">
         <span className="inline-flex items-center gap-1.5">
           <Clock size={13} />
-          {formatMinutes(pathMinutes(path.id))}
+          {formatMinutesFor(t, pathMinutes(path.id))}
         </span>
         <span className="inline-flex items-center gap-1.5">
           <BookOpen size={13} />
-          {path.units.length} units
+          {t('common.units', { n: path.units.length })}
         </span>
         <span className="ml-auto font-semibold text-[var(--text-strong)]">{percent}%</span>
       </div>
-      <ProgressBar value={percent} tone={isWord ? 'word' : 'excel'} className="mt-2" label={`${path.title} progress`} />
+      <ProgressBar value={percent} tone={isWord ? 'word' : 'excel'} className="mt-2" label={t('common.progressOf', { name: path.title })} />
 
       <div className="mt-6 flex items-center gap-3">
         <Link
@@ -102,7 +107,7 @@ export default function PathCard({ path }: { path: LearningPath }) {
             isWord ? 'bg-word-600 hover:bg-word-700' : 'bg-excel-600 hover:bg-excel-700'
           }`}
         >
-          {percent > 0 ? 'Continue path' : 'Explore path'}
+          {percent > 0 ? t('pathCard.continue') : t('pathCard.explore')}
           <ArrowRight size={15} />
         </Link>
         {next && (
@@ -110,7 +115,7 @@ export default function PathCard({ path }: { path: LearningPath }) {
             to={`/lesson/${next.id}`}
             className="text-sm font-medium text-muted transition hover:text-[var(--text-strong)]"
           >
-            {percent > 0 ? 'Jump to next lesson' : 'First lesson'}
+            {percent > 0 ? t('pathCard.jumpNext') : t('pathCard.first')}
           </Link>
         )}
       </div>
