@@ -29,6 +29,7 @@ export const km: Messages = {
   'footer.projects': 'គម្រោង',
   'footer.myProgress': 'វឌ្ឍនភាពរបស់ខ្ញុំ',
   'footer.local': 'វឌ្ឍនភាពត្រូវបានរក្សាទុកក្នុងកម្មវិធីរុករកនេះ។',
+  'footer.builtBy': 'បង្កើតដោយ',
   'content.englishNote': 'ឈ្មោះផ្ទាំង ប៊ូតុង និងរូបមន្ត នៅជាភាសាអង់គ្លេស ដើម្បីឱ្យដូចគ្នានឹងអ្វីដែលអ្នកឃើញក្នុង Word និង Excel។',
 
   // Common

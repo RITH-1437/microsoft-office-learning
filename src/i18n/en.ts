@@ -30,6 +30,7 @@ export const en = {
   'footer.projects': 'Projects',
   'footer.myProgress': 'My progress',
   'footer.local': 'Progress stays in this browser.',
+  'footer.builtBy': 'Built by',
   'content.englishNote': 'Tab, button and formula names stay in English so they match what you see in Word and Excel.',
 
   // Common

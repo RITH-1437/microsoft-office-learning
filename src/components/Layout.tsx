@@ -280,6 +280,17 @@ export default function Layout() {
               {t('footer.myProgress')}
             </Link>
             <span>{t('footer.local')}</span>
+            <span>
+              {t('footer.builtBy')}{' '}
+              <a
+                href="https://rith-1437.github.io/protfolio_professional_done/"
+                target="_blank"
+                rel="author noopener"
+                className="underline underline-offset-2 hover:text-[var(--text-strong)]"
+              >
+                RIN Nairith
+              </a>
+            </span>
           </div>
         </div>
       </footer>
